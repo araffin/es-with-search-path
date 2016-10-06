@@ -6,6 +6,8 @@
 
 using namespace std;
 
+
+#if 0
 void printArray(float* array, int n)
 {
   for (size_t i = 0; i < n; i++)
@@ -117,36 +119,9 @@ void fmin(void* fitnessFunction, int n, int lambda, int maxIterations)
       ,n);
     // Warning here, sum of vectors
     X = (1/mu)*sumVectors(X_k, population, lambda, n);
-      
-    );
     
     counter++;
   }
   std::cout << "/* Best Solution :  */" << printArray(X_best, n) << std::endl;  
 }
-
-int main(int argc, char const *argv[])
-{
-  float **mat;
-  int rows = 2, cols = 4, i, j;
-  // dynamically allocate memory for a matrix of size m x n
-  mat = new float*[rows];
-  for ( i = 0; i < rows; i++ ) {
-     mat[i] = new float[cols];
-  }
-  // initialize matrix elements
-  for ( i = 0; i < rows; i++ ) {
-     for ( j = 0; j < cols; j++ ) {
-        mat[i][j] = i + j;         
-     }
-  }
-  // display matrix 
-  printMatrix(mat, rows, cols);
-
-  // deallocate (free) the memory
-  for ( i = 0; i < rows; i++ ) {
-     delete mat[i];
-  }
-  delete mat;
-  return 0;
-}
+#endif

@@ -14,23 +14,27 @@
 
 LDFLAGS += -lm
 CCFLAGS = -g -ggdb -std=c89 -pedantic -Wall -Wextra -Wstrict-prototypes -Wshadow -Wno-sign-compare -Wconversion
-
+CPPFLAGS = -std=c++11 -Wall -Wextra -Wstrict-prototypes -Wshadow -Wno-sign-compare -Wconversion
 ########################################################################
 ## Toplevel targets
-all: algo_4
+all: experiment
 
 clean:
 	rm -f coco.o 
-	rm -f algo_4.o algo_4 
+	rm -f experiment.o experiment 
+	rm -f algo4.o
 
 ########################################################################
 ## Programs
-algo_4: algo_4.o coco.o
-	${CC} ${CCFLAGS} -o algo_4 coco.o algo_4.o ${LDFLAGS}  
+experiment: experiment.o coco.o algo4.o
+	${CC} ${CCFLAGS} -o experiment coco.o algo4.o experiment.o ${LDFLAGS}  
 
 ########################################################################
 ## Additional dependencies
+algo4.o: algo4.cpp
+	g++ -c ${CPPFLAGS} -o algo4.o algo4.cpp
+
 coco.o: coco.h coco.c
 	${CC} -c ${CCFLAGS} -o coco.o coco.c
-algo_4.o: coco.h coco.c algo_4.c
-	${CC} -c ${CCFLAGS} -o algo_4.o algo_4.c
+experiment.o: coco.h coco.c experiment.c
+	${CC} -c ${CCFLAGS} -o experiment.o experiment.c
