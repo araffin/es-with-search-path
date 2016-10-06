@@ -1,1 +1,4 @@
 *.x
+*.o
+exdata/
+algo_4
