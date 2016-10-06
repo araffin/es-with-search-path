@@ -8,10 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-
-#include "coco.h"
-
-#include "algo4.cpp"
+#include "algo4.hpp"
 
 /**
  * The maximal budget for evaluations done by an optimization algorithm equals dimension * BUDGET_MULTIPLIER.

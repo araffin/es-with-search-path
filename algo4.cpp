@@ -1,20 +1,8 @@
 // Evolution Strategy with search path
 // as describe in https://www.lri.fr/~hansen/es-overview-2015.pdf [Algo 4]
-#include <iostream>
-#include <math.h>
-#include <random> // Normal distribution
-
-#include "coco.h"
+#include "algo4.hpp"
 
 using namespace std;
-
-
-/**
- * A function type for evaluation functions, where the first argument is the vector to be evaluated and the
- * second argument the vector to which the evaluation result is stored.
- */
-typedef void (*evaluate_function_t)(const double *x, double *y);
-
 
 /**
  * A grid search optimizer that can be used for single- as well as multi-objective optimization.
