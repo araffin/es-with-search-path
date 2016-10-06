@@ -67,6 +67,13 @@ void my_grid_search(evaluate_function_t evaluate,
                     const double *upper_bounds,
                     const size_t max_budget);
 
+void algo_4(evaluate_function_t evaluate,
+                    const size_t dimension,
+                    const size_t number_of_objectives,
+                    const double *lower_bounds,
+                    const double *upper_bounds,
+                    const size_t max_budget)
+
 /* Structure and functions needed for timing the experiment */
 typedef struct {
 	size_t number_of_dimensions;
