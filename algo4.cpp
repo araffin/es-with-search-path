@@ -4,7 +4,7 @@
 #include <math.h>
 #include <random> // Normal distribution
 
-#include <coco.h>
+#include "coco.h"
 
 using namespace std;
 

@@ -11,7 +11,7 @@
 
 #include "coco.h"
 
-#include <algo4.cpp>
+#include "algo4.cpp"
 
 /**
  * The maximal budget for evaluations done by an optimization algorithm equals dimension * BUDGET_MULTIPLIER.
