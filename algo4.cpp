@@ -4,8 +4,24 @@
 #include <math.h>
 #include <random> // Normal distribution
 
+#include <coco.h>
+
 using namespace std;
 
+
+/**
+ * A grid search optimizer that can be used for single- as well as multi-objective optimization.
+ *
+ * @param evaluate The evaluation function used to evaluate the solutions.
+ * @param dimension The number of variables.
+ * @param number_of_objectives The number of objectives.
+ * @param lower_bounds The lower bounds of the region of interested (a vector containing dimension values).
+ * @param upper_bounds The upper bounds of the region of interested (a vector containing dimension values).
+ * @param max_budget The maximal number of evaluations.
+ *
+ * If max_budget is not enough to cover even the smallest possible grid, only the first max_budget
+ * nodes of the grid are evaluated.
+ */
 
 void algo_4(evaluate_function_t evaluate,
                     const size_t dimension,
@@ -14,9 +30,27 @@ void algo_4(evaluate_function_t evaluate,
                     const double *upper_bounds,
                     const size_t max_budget) {
 
+  // ======================================================
+  // INITIALIZATION
+  // ======================================================
+  float X[n]; // To be randomely initialized
+  float X_best[n];
+  float Sigma[n]; // idem
+  float s_sigma = 0; // search path ? not a vector ?
+  bool happy = false;
+  int counter = 0;
+
+
+
 }
 
 #if 0
+void my_grid_search(evaluate_function_t evaluate,
+                    const size_t dimension,
+                    const size_t number_of_objectives,
+                    const double *lower_bounds,
+                    const double *upper_bounds,
+                    const size_t max_budget){
 
   double *x = coco_allocate_vector(dimension);
   double *y = coco_allocate_vector(number_of_objectives);
