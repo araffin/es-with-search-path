@@ -8,8 +8,8 @@ using namespace std;
  * A grid search optimizer that can be used for single- as well as multi-objective optimization.
  *
  * @param evaluate The evaluation function used to evaluate the solutions.
- * @param dimension The number of variables.
- * @param number_of_objectives The number of objectives.
+ * @param dimension The number of variables (= n in our case)
+ * @param number_of_objectives The number of objectives. = 1 in our case -> removed
  * @param lower_bounds The lower bounds of the region of interested (a vector containing dimension values).
  * @param upper_bounds The upper bounds of the region of interested (a vector containing dimension values).
  * @param max_budget The maximal number of evaluations.
@@ -28,14 +28,22 @@ void algo4(evaluate_function_t evaluate,
   // ======================================================
   // INITIALIZATION
   // ======================================================
-  /*
-  float X[n]; // To be randomely initialized
-  float X_best[n];
-  float Sigma[n]; // idem
-  float s_sigma = 0; // search path ? not a vector ?
+  
+  float X[dimension] = {0};; // To be randomely initialized
+  float X_best[dimension];
+  float Sigma[dimension]; // idem
+  float s_sigma[dimension] = {0};;; // search path --> vector !
   bool happy = false;
   int counter = 0;
-  */
+  int lambda; 
+
+  for (int i = 0; i < dimension ; i ++)
+  {
+    Sigma[i] = 1; 
+  }
+
+
+  
 
 
 
