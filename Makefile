@@ -13,8 +13,8 @@
 ## or installing Cygwin and running GNU make from within Cygwin.
 
 LDFLAGS += -lm
-CCFLAGS = -g -ggdb -std=c89 -pedantic -Wall -Wextra -Wstrict-prototypes -Wshadow -Wno-sign-compare -Wconversion
-CPPFLAGS = -std=c++11 -Wall -Wextra -Wstrict-prototypes -Wshadow -Wno-sign-compare -Wconversion
+#CCFLAGS = -g -ggdb -std=c89 -pedantic -Wall -Wextra -Wstrict-prototypes -Wshadow -Wno-sign-compare -Wconversion
+CPPFLAGS = -std=c++11 -Wall -Wextra -Wstrict-prototypes -Wshadow -Wno-sign-compare -Wconversion -fpermissive
 ########################################################################
 ## Toplevel targets
 all: experiment
@@ -27,7 +27,7 @@ clean:
 ########################################################################
 ## Programs
 experiment: experiment.o coco.o algo4.o
-	${CC} ${CCFLAGS} -o experiment coco.o algo4.o experiment.o ${LDFLAGS}  
+	g++ ${CPPFLAGS} -o experiment coco.o algo4.o experiment.o ${LDFLAGS}  
 
 ########################################################################
 ## Additional dependencies
@@ -35,6 +35,6 @@ algo4.o: algo4.cpp
 	g++ -c ${CPPFLAGS} -o algo4.o algo4.cpp
 
 coco.o: coco.h coco.c
-	${CC} -c ${CCFLAGS} -o coco.o coco.c
+	g++ -c ${CPPFLAGS} -o coco.o coco.c
 experiment.o: coco.h coco.c experiment.c
-	${CC} -c ${CCFLAGS} -o experiment.o experiment.c
+	g++ -c ${CPPFLAGS} -o experiment.o experiment.c
