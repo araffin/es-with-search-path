@@ -124,7 +124,7 @@ void my_grid_search(evaluate_function_t evaluate,
 
 
 #if 0
-void printArray(float* array, int n)
+void printArray(float* array, size_t n)
 {
   for (size_t i = 0; i < n; i++)
     cout << array[i] << " ";
@@ -132,7 +132,7 @@ void printArray(float* array, int n)
   cout << endl;
 }
 
-void printMatrix(float** array, int n, int m)
+void printMatrix(float** array, size_t n, size_t m)
 {
   for (size_t i = 0; i < n; i++)
   {
@@ -143,51 +143,52 @@ void printMatrix(float** array, int n, int m)
   }
 }
 
-void elementProduct(float* a, float* b, float* result, int n)
+void elementProduct(float* a, float* b, float* result, size_t n)
 {
   for (size_t i = 0; i < n; i++)
     result[i] = a[i]*b[i];
 }
-/**
- * Sum of two arrays
- * @param a      [description]
- * @param b      [description]
- * @param result [description]
- * @param n      [description]
- */
-void arraySum(float* a, float* b, float* result, int n)
+
+void arraySum(float* a, float* b, float* result, size_t n)
 {
   for (size_t i = 0; i < n; i++)
     result[i] = a[i] + b[i];
 }
 
 /**
- * Sum of k vectors (of dimension n)
- * For each column sum the k rows of the matrix a 
- * @param a      matrix (array of array)
- * @param result [description]
- * @param k      [description]
- * @param n      [description]
+ * Sum component wise an array of k vectors of dimension n
+ * In fact, it sums the rows of a matrix of size k*n
+ * @param mat    a matrix
+ * @param result an array containing the result of the operation
+ * @param k  number of vectors (= nb of rows)
+ * @param n the dimension (= nb of columns)
  */
-void sumVectors(float** a, float* result, int k, int n)
+void sumVectors(float** mat, float* result, size_t k, size_t n)
 {
- for (size_t j = 0; j < n; j++) {
-   result[j] = 0;
-   for (size_t i = 0; i < k; i++) {
-     result[j] += a[i][j];
-   }
- }
+  for (size_t j = 0; j < n; j++) {
+    result[j] = 0;
+    for (size_t i = 0; i < k; i++) {
+      result[j] += mat[i][j];
+    }
+  }
 }
 
-// Or something like :
-// template <size_t rows, size_t cols>
-// void process_2d_array_template(int (&array)[rows][cols])
-// for 2D arrays ?
-void normalVector(float** Z, normal_distribution<> N, mt19937 gen, int lambda, int n)
+/**
+ * Fill a matrix with random numbers drawn from a normal distribution
+ * @param mat     a matrix of dimension nb_rows x nb_cols
+ * @param N       the normal distribution
+ * @param gen     a random generator
+ * @param nb_rows 
+ * @param nb_cols 
+ */
+void normalMatrix(float** mat, normal_distribution<> N, mt19937 gen, 
+                  size_t nb_rows, size_t nb_cols)
 {
-  for (size_t k = 0; k < lambda; k++) {
-    for (size_t j = 0; j < n; j++) {
-      Z[k][j] = N(gen());
+  for (size_t i = 0; i < nb_rows; i++)
+  {
+    for (size_t j = 0; j < nb_cols; j++)
+    {
+      mat[i][j] = N(gen);
     }
   }
 }

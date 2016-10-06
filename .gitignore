@@ -1,4 +1,5 @@
 *.x
 *.o
 exdata/
+antonin/
 algo_4
