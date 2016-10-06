@@ -10,6 +10,13 @@ using namespace std;
 
 
 /**
+ * A function type for evaluation functions, where the first argument is the vector to be evaluated and the
+ * second argument the vector to which the evaluation result is stored.
+ */
+typedef void (*evaluate_function_t)(const double *x, double *y);
+
+
+/**
  * A grid search optimizer that can be used for single- as well as multi-objective optimization.
  *
  * @param evaluate The evaluation function used to evaluate the solutions.
@@ -23,7 +30,7 @@ using namespace std;
  * nodes of the grid are evaluated.
  */
 
-void algo_4(evaluate_function_t evaluate,
+void algo4(evaluate_function_t evaluate,
                     const size_t dimension,
                     const size_t number_of_objectives,
                     const double *lower_bounds,
@@ -33,12 +40,14 @@ void algo_4(evaluate_function_t evaluate,
   // ======================================================
   // INITIALIZATION
   // ======================================================
+  /*
   float X[n]; // To be randomely initialized
   float X_best[n];
   float Sigma[n]; // idem
   float s_sigma = 0; // search path ? not a vector ?
   bool happy = false;
   int counter = 0;
+  */
 
 
 

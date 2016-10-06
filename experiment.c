@@ -32,8 +32,9 @@ static const uint32_t RANDOM_SEED = 0xdeadbeef;
 /**
  * A function type for evaluation functions, where the first argument is the vector to be evaluated and the
  * second argument the vector to which the evaluation result is stored.
- */
+ * function moved in algo4.cpp
 typedef void (*evaluate_function_t)(const double *x, double *y);
+*/
 
 /**
  * A pointer to the problem to be optimized (needed in order to simplify the interface between the optimization
@@ -69,12 +70,14 @@ void my_grid_search(evaluate_function_t evaluate,
                     const double *upper_bounds,
                     const size_t max_budget);
 
-void algo_4(evaluate_function_t evaluate,
+/*
+void algo4(evaluate_function_t evaluate,
                     const size_t dimension,
                     const size_t number_of_objectives,
                     const double *lower_bounds,
                     const double *upper_bounds,
-                    const size_t max_budget)
+                    const size_t max_budget);
+*/
 
 /* Structure and functions needed for timing the experiment */
 typedef struct {
