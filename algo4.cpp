@@ -1,6 +1,7 @@
 // Evolution Strategy with search path
 // as describe in https://www.lri.fr/~hansen/es-overview-2015.pdf [Algo 4]
 #include "algo4.hpp"
+#include <assert.h>  
 
 using namespace std;
 
@@ -9,7 +10,7 @@ using namespace std;
  *
  * @param evaluate The evaluation function used to evaluate the solutions.
  * @param dimension The number of variables (= n in our case)
- * @param number_of_objectives The number of objectives. = 1 in our case -> removed
+ * @param number_of_objectives The number of objectives. = 1 in our case
  * @param lower_bounds The lower bounds of the region of interested (a vector containing dimension values).
  * @param upper_bounds The upper bounds of the region of interested (a vector containing dimension values).
  * @param max_budget The maximal number of evaluations.
@@ -29,17 +30,60 @@ void algo4(evaluate_function_t evaluate,
   // INITIALIZATION
   // ======================================================
   
-  float X[dimension] = {0};; // To be randomely initialized
+  assert(number_of_objectives == 1);
+
+  double X[dimension] = {0}; // To be randomely initialized - double (not float) to be used with the function evaluate
   float X_best[dimension];
   float Sigma[dimension]; // idem
-  float s_sigma[dimension] = {0};;; // search path --> vector !
+  float s_sigma[dimension] = {0}; // search path --> vector !
   bool happy = false;
   int counter = 0;
   int lambda; 
 
+  // a t-on besoin d'un critère d'arrêt ? Sinon on fait juste le nb d'itérations comme dans les exemples
+  double stop_criterion = 0.0002; // juste pour tester les 3 dernières lignes de la boucle 
+
+
+  //double *x = coco_allocate_vector(dimension);
+  double *y = coco_allocate_vector(number_of_objectives);
+
   for (int i = 0; i < dimension ; i ++)
   {
     Sigma[i] = 1; 
+  }
+
+  while (!happy && counter < max_budget)
+  {
+
+    /*
+    float Z[lambda][n];
+    float X_k[lambda][n];
+    
+    for (size_t k = 0; k < lambda; k++)
+    {
+      normalVector(Z, N, gen, lambda, n);
+      X_k[k] = arraySum(X + elementProduct(Sigma, Z[k]), n);
+    }
+    // Select the mu best solution + update X_best
+    select_mu_best(mu, lambda, X_k, Z, fitnessFunction, population);
+    
+    // Better to do that inline (because we need several output)
+    s_sigma = (1-cs)*s_sigma + sqrt(cs*(2-cs))*(sqrt(mu)/mu) * sumVectors(Z, population, lambda, n);
+    Sigma = elementProduct(Sigma, \
+      exp(abs(s_sigma)/(2*d_i) - 1) \
+      * exp((cs/d)*abs(s_sigma)/(esperanceNormalDistri) - 1)
+      ,n);
+    // Warning here, sum of vectors
+    X = (1/mu)*sumVectors(X_k, population, lambda, n);
+    */
+
+
+
+    // utilise t-on vraiment un critère d'arrêt ? 
+    evaluate(X,y); 
+    happy = (y[0] < stop_criterion);
+
+    counter++;
   }
 
 
@@ -211,6 +255,8 @@ void fmin(void* fitnessFunction, int n, int lambda, int maxIterations)
   bool happy = false;
   int counter = 0;
   bool population[mu];
+
+
   while (!happy && counter < maxIterations)
   {
     float Z[lambda][n];
