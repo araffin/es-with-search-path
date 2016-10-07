@@ -21,6 +21,6 @@ void printMatrix(double** array, size_t n, size_t m);
 void elementProduct(double* a, double* b, double* result, size_t n);
 void arraySum(double* a, double* b, double* result, size_t n);
 void sumVectors(double** mat, double* result, size_t k, size_t n);
-void normalMatrix(double** mat, std::normal_distribution<> N, std::mt19937 gen, 
+void normalMatrix(double** mat, std::normal_distribution<> N, std::mt19937 gen,
                   size_t nb_rows, size_t nb_cols);
 void freeMatrix(double** mat, size_t nb_rows);

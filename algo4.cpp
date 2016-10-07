@@ -1,7 +1,7 @@
 // Evolution Strategy with search path
 // as describe in https://www.lri.fr/~hansen/es-overview-2015.pdf [Algo 4]
 #include "algo4.hpp"
-#include <assert.h>  
+#include <assert.h>
 
 using namespace std;
 
@@ -30,7 +30,7 @@ void algo4(evaluate_function_t evaluate,
   // ======================================================
   // INITIALIZATION
   // ======================================================
-  
+
   assert(number_of_objectives == 1);
 
   double X[dimension] = {0}; // To be randomely initialized - double (not float) to be used with the function evaluate
@@ -40,8 +40,9 @@ void algo4(evaluate_function_t evaluate,
   bool happy = false;
   int counter = 0;
   // mu uninitialized ?
-  int lambda; 
-  
+  int lambda;
+  int mu = (int) lambda/4;
+
   // offspring population
   double** X_k;
   // Mutation vectors
@@ -59,17 +60,17 @@ void algo4(evaluate_function_t evaluate,
   {
      for (size_t j = 0; j < dimension; j++ )
      {
-        X_k[i][j] = 0;         
+        X_k[i][j] = 0;
      }
   }
-  
+
   // Random generator (normal distribution)
   random_device rd;
   mt19937 gen(rd()); //Mersenne Twister 19937 generator
   normal_distribution<> N(0,1);
-  
+
   // a t-on besoin d'un critère d'arrêt ? Sinon on fait juste le nb d'itérations comme dans les exemples
-  double stop_criterion = 0.0002; // juste pour tester les 3 dernières lignes de la boucle 
+  double stop_criterion = 0.0002; // juste pour tester les 3 dernières lignes de la boucle
 
   // printArray(X, dimension);
   // double *x = coco_allocate_vector(dimension);
@@ -77,7 +78,7 @@ void algo4(evaluate_function_t evaluate,
 
   for (int i = 0; i < dimension ; i ++)
   {
-    Sigma[i] = 1; 
+    Sigma[i] = 1;
   }
 
   while (!happy && counter < max_budget)
@@ -93,7 +94,7 @@ void algo4(evaluate_function_t evaluate,
     /*
     // Select the mu best solution + update X_best
     select_mu_best(mu, lambda, X_k, Z, fitnessFunction, population);
-    
+
     // Better to do that inline (because we need several output)
     s_sigma = (1-cs)*s_sigma + sqrt(cs*(2-cs))*(sqrt(mu)/mu) * sumVectors(Z, population, lambda, n);
     Sigma = elementProduct(Sigma, \
@@ -104,8 +105,8 @@ void algo4(evaluate_function_t evaluate,
     X = (1/mu)*sumVectors(X_k, population, lambda, n);
     */
 
-    // utilise t-on vraiment un critère d'arrêt ? 
-    evaluate(X,y); 
+    // utilise t-on vraiment un critère d'arrêt ?
+    evaluate(X,y);
     happy = (y[0] < stop_criterion);
 
     counter++;
@@ -120,7 +121,7 @@ void printArray(double* array, size_t n)
 {
   for (size_t i = 0; i < n; i++)
     cout << array[i] << " ";
-  
+
   cout << endl;
 }
 
@@ -170,10 +171,10 @@ void sumVectors(double** mat, double* result, size_t k, size_t n)
  * @param mat     a matrix of dimension nb_rows x nb_cols
  * @param N       the normal distribution
  * @param gen     a random generator
- * @param nb_rows 
- * @param nb_cols 
+ * @param nb_rows
+ * @param nb_cols
  */
-void normalMatrix(double** mat, normal_distribution<> N, mt19937 gen, 
+void normalMatrix(double** mat, normal_distribution<> N, mt19937 gen,
                   size_t nb_rows, size_t nb_cols)
 {
   for (size_t i = 0; i < nb_rows; i++)
@@ -271,12 +272,12 @@ void fmin(void* fitnessFunction, int n, int lambda, int maxIterations)
   float cs = sqrt(mu/(n+mu)); // normalization factor?
   float d = 1 + sqrt(mu/n); // damping factor for cs ?
   float d_i = 3*n; // or vector ?
-  
+
   // Random generator (normal distribution)
   random_device rd;
   mt19937 gen(rd()); //Mersenne Twister 19937 generator
   normal_distribution<> N(0,1);
-  
+
   // ======================================================
   // INITIALIZATION
   // ======================================================
@@ -293,7 +294,7 @@ void fmin(void* fitnessFunction, int n, int lambda, int maxIterations)
   {
     float Z[lambda][n];
     float X_k[lambda][n];
-    
+
     for (size_t k = 0; k < lambda; k++)
     {
       normalVector(Z, N, gen, lambda, n);
@@ -301,7 +302,7 @@ void fmin(void* fitnessFunction, int n, int lambda, int maxIterations)
     }
     // Select the mu best solution + update X_best
     select_mu_best(mu, lambda, X_k, Z, fitnessFunction, population);
-    
+
     // Better to do that inline (because we need several output)
     s_sigma = (1-cs)*s_sigma + sqrt(cs*(2-cs))*(sqrt(mu)/mu) * sumVectors(Z, population, lambda, n);
     Sigma = elementProduct(Sigma, \
@@ -310,9 +311,9 @@ void fmin(void* fitnessFunction, int n, int lambda, int maxIterations)
       ,n);
     // Warning here, sum of vectors
     X = (1/mu)*sumVectors(X_k, population, lambda, n);
-    
+
     counter++;
   }
-  std::cout << "/* Best Solution :  */" << printArray(X_best, n) << std::endl;  
+  std::cout << "/* Best Solution :  */" << printArray(X_best, n) << std::endl;
 }
 #endif
