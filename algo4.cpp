@@ -39,9 +39,9 @@ void algo4(evaluate_function_t evaluate,
   double s_sigma[dimension] = {0}; // search path --> vector !
   bool happy = false;
   int counter = 0;
-  // mu uninitialized ?
   int lambda;
   int mu = (int) lambda/4;
+  // d and d_i uninitilized ?
 
   // offspring population
   double** X_k;
@@ -86,9 +86,11 @@ void algo4(evaluate_function_t evaluate,
 
     for (size_t k = 0; k < lambda; k++)
     {
+      // z_k = N(0,I)
       normalMatrix(Z, N, gen, lambda, dimension);
       double product_result[dimension];
       elementProduct(Sigma, Z[k], product_result, dimension);
+      // x_k = x + sigma o z_k
       arraySum(X, product_result, X_k[k], dimension);
     }
     /*
