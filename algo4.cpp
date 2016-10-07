@@ -24,7 +24,8 @@ void algo4(evaluate_function_t evaluate,
                     const size_t number_of_objectives,
                     const double *lower_bounds,
                     const double *upper_bounds,
-                    const size_t max_budget) {
+                    const size_t max_budget)
+{
 
   // ======================================================
   // INITIALIZATION
@@ -33,18 +34,45 @@ void algo4(evaluate_function_t evaluate,
   assert(number_of_objectives == 1);
 
   double X[dimension] = {0}; // To be randomely initialized - double (not float) to be used with the function evaluate
-  float X_best[dimension];
-  float Sigma[dimension]; // idem
-  float s_sigma[dimension] = {0}; // search path --> vector !
+  double X_best[dimension];
+  double Sigma[dimension]; // idem
+  double s_sigma[dimension] = {0}; // search path --> vector !
   bool happy = false;
   int counter = 0;
+  // mu uninitialized ?
   int lambda; 
-
+  
+  // offspring population
+  double** X_k;
+  // Mutation vectors
+  double** Z;
+  // Matrix Initialization
+  X_k = new double*[lambda];
+  Z = new double*[lambda];
+  for (size_t i = 0; i < lambda; i++ )
+  {
+    X_k[i] = new double[dimension];
+    Z[i] = new double[dimension];
+  }
+  // initialize matrix elements
+  for (size_t i = 0; i < lambda; i++ )
+  {
+     for (size_t j = 0; j < dimension; j++ )
+     {
+        X_k[i][j] = 0;         
+     }
+  }
+  
+  // Random generator (normal distribution)
+  random_device rd;
+  mt19937 gen(rd()); //Mersenne Twister 19937 generator
+  normal_distribution<> N(0,1);
+  
   // a t-on besoin d'un critère d'arrêt ? Sinon on fait juste le nb d'itérations comme dans les exemples
   double stop_criterion = 0.0002; // juste pour tester les 3 dernières lignes de la boucle 
 
-
-  //double *x = coco_allocate_vector(dimension);
+  // printArray(X, dimension);
+  // double *x = coco_allocate_vector(dimension);
   double *y = coco_allocate_vector(number_of_objectives);
 
   for (int i = 0; i < dimension ; i ++)
@@ -55,15 +83,14 @@ void algo4(evaluate_function_t evaluate,
   while (!happy && counter < max_budget)
   {
 
-    /*
-    float Z[lambda][n];
-    float X_k[lambda][n];
-    
     for (size_t k = 0; k < lambda; k++)
     {
-      normalVector(Z, N, gen, lambda, n);
-      X_k[k] = arraySum(X + elementProduct(Sigma, Z[k]), n);
+      normalMatrix(Z, N, gen, lambda, dimension);
+      double product_result[dimension];
+      elementProduct(Sigma, Z[k], product_result, dimension);
+      arraySum(X, product_result, X_k[k], dimension);
     }
+    /*
     // Select the mu best solution + update X_best
     select_mu_best(mu, lambda, X_k, Z, fitnessFunction, population);
     
@@ -77,20 +104,94 @@ void algo4(evaluate_function_t evaluate,
     X = (1/mu)*sumVectors(X_k, population, lambda, n);
     */
 
-
-
     // utilise t-on vraiment un critère d'arrêt ? 
     evaluate(X,y); 
     happy = (y[0] < stop_criterion);
 
     counter++;
   }
+  // Free memory
+  freeMatrix(X_k, lambda);
+  freeMatrix(Z, lambda);
+  coco_free_memory(y);
+}
 
-
+void printArray(double* array, size_t n)
+{
+  for (size_t i = 0; i < n; i++)
+    cout << array[i] << " ";
   
+  cout << endl;
+}
 
+void printMatrix(double** array, size_t n, size_t m)
+{
+  for (size_t i = 0; i < n; i++)
+  {
+    for (size_t j = 0; j < m; j++) {
+      cout << array[i][j] << " ";
+    }
+    cout << endl;
+  }
+}
 
+void elementProduct(double* a, double* b, double* result, size_t n)
+{
+  for (size_t i = 0; i < n; i++)
+    result[i] = a[i]*b[i];
+}
 
+void arraySum(double* a, double* b, double* result, size_t n)
+{
+  for (size_t i = 0; i < n; i++)
+    result[i] = a[i] + b[i];
+}
+
+/**
+ * Sum component wise an array of k vectors of dimension n
+ * In fact, it sums the rows of a matrix of size k*n
+ * @param mat    a matrix
+ * @param result an array containing the result of the operation
+ * @param k  number of vectors (= nb of rows)
+ * @param n the dimension (= nb of columns)
+ */
+void sumVectors(double** mat, double* result, size_t k, size_t n)
+{
+  for (size_t j = 0; j < n; j++) {
+    result[j] = 0;
+    for (size_t i = 0; i < k; i++) {
+      result[j] += mat[i][j];
+    }
+  }
+}
+
+/**
+ * Fill a matrix with random numbers drawn from a normal distribution
+ * @param mat     a matrix of dimension nb_rows x nb_cols
+ * @param N       the normal distribution
+ * @param gen     a random generator
+ * @param nb_rows 
+ * @param nb_cols 
+ */
+void normalMatrix(double** mat, normal_distribution<> N, mt19937 gen, 
+                  size_t nb_rows, size_t nb_cols)
+{
+  for (size_t i = 0; i < nb_rows; i++)
+  {
+    for (size_t j = 0; j < nb_cols; j++)
+    {
+      mat[i][j] = N(gen);
+    }
+  }
+}
+
+void freeMatrix(double** mat, size_t nb_rows)
+{
+  for (size_t i = 0; i < nb_rows; i++ )
+  {
+     delete mat[i];
+  }
+  delete mat;
 }
 
 #if 0
@@ -161,77 +262,8 @@ void my_grid_search(evaluate_function_t evaluate,
 #endif
 
 
-
-
 #if 0
-void printArray(float* array, size_t n)
-{
-  for (size_t i = 0; i < n; i++)
-    cout << array[i] << " ";
-  
-  cout << endl;
-}
 
-void printMatrix(float** array, size_t n, size_t m)
-{
-  for (size_t i = 0; i < n; i++)
-  {
-    for (size_t j = 0; j < m; j++) {
-      cout << array[i][j] << " ";
-    }
-    cout << endl;
-  }
-}
-
-void elementProduct(float* a, float* b, float* result, size_t n)
-{
-  for (size_t i = 0; i < n; i++)
-    result[i] = a[i]*b[i];
-}
-
-void arraySum(float* a, float* b, float* result, size_t n)
-{
-  for (size_t i = 0; i < n; i++)
-    result[i] = a[i] + b[i];
-}
-
-/**
- * Sum component wise an array of k vectors of dimension n
- * In fact, it sums the rows of a matrix of size k*n
- * @param mat    a matrix
- * @param result an array containing the result of the operation
- * @param k  number of vectors (= nb of rows)
- * @param n the dimension (= nb of columns)
- */
-void sumVectors(float** mat, float* result, size_t k, size_t n)
-{
-  for (size_t j = 0; j < n; j++) {
-    result[j] = 0;
-    for (size_t i = 0; i < k; i++) {
-      result[j] += mat[i][j];
-    }
-  }
-}
-
-/**
- * Fill a matrix with random numbers drawn from a normal distribution
- * @param mat     a matrix of dimension nb_rows x nb_cols
- * @param N       the normal distribution
- * @param gen     a random generator
- * @param nb_rows 
- * @param nb_cols 
- */
-void normalMatrix(float** mat, normal_distribution<> N, mt19937 gen, 
-                  size_t nb_rows, size_t nb_cols)
-{
-  for (size_t i = 0; i < nb_rows; i++)
-  {
-    for (size_t j = 0; j < nb_cols; j++)
-    {
-      mat[i][j] = N(gen);
-    }
-  }
-}
 
 void fmin(void* fitnessFunction, int n, int lambda, int maxIterations)
 {
