@@ -39,11 +39,12 @@ void algo4(evaluate_function_t evaluate,
   double s_sigma[dimension] = {0}; // search path --> vector !
   bool happy = false;
   int counter = 0;
-  int lambda;
+  int lambda; // lambda is given, how do we have it ? 
   int mu = (int) lambda/4;
   // d and d_i uninitilized ? --> done !
   double d = 1 + sqrt(mu/dimension); 
   double di = 3*dimension; 
+  double c_sigma = sqrt(mu/(dimension + mu)); 
   // offspring population
   double** X_k;
   // Mutation vectors
@@ -119,6 +120,7 @@ void algo4(evaluate_function_t evaluate,
   freeMatrix(Z, lambda);
   coco_free_memory(y);
 }
+
 
 void printArray(double* array, size_t n)
 {
