@@ -34,13 +34,14 @@ void algo4(evaluate_function_t evaluate,
   assert(number_of_objectives == 1);
 
   double X[dimension] = {0}; // To be randomely initialized - double (not float) to be used with the function evaluate
-  double X_best[dimension];
+  double X_tmp[dimension] = {0}; // Used when sorting the solutions
+  double Z_tmp[dimension] = {0}; // Used when sorting the solutions
   double Sigma[dimension]; // idem
   double s_sigma[dimension] = {0}; // search path --> vector !
   bool happy = false;
   int counter = 0;
-  int lambda; // lambda is given, how do we have it ?
-  int mu = (int) lambda/4;
+  size_t lambda = 10;
+  size_t mu = (size_t) lambda/4;
   // d and d_i uninitilized ? --> done !
   double d = 1 + sqrt((double)mu/dimension);
   double di = 3*dimension;
@@ -91,17 +92,24 @@ void algo4(evaluate_function_t evaluate,
     {
       // z_k = N(0,I)
       normalMatrix(Z, N, gen, lambda, dimension);
+      // temp variable to store intermediate result
       double product_result[dimension];
       elementProduct(Sigma, Z[k], product_result, dimension);
       // x_k = x + sigma o z_k
       arraySum(X, product_result, X_k[k], dimension);
     }
 
+    // Select the mu best
     for (size_t k = 0; k <= lambda; k++)
     {
-      X = X_k[k];
-      evaluate(X, y); //Evaluate f(x_k) and store the result in y
-      int position = k; //Variable used to sort the X_k array
+      // X_tmp = X_k[k]
+      vectorCopy(X_k[k], X_tmp, dimension);
+      // Z_tmp = Z[k]
+      vectorCopy(Z[k], Z_tmp, dimension);
+      //Evaluate f(x_k) and store the result in y
+      evaluate(X_tmp, y); 
+      //Variable used to sort the X_k array
+      size_t position = k;
       if(k > 0)
       {
         //Find the position of x_k given f(x_k)
@@ -110,22 +118,28 @@ void algo4(evaluate_function_t evaluate,
         {
           //Move x_k and f(x_k) backwards till position
           fitness[l] = fitness[l - 1];
-          X_k[l] = X_k[l - 1];
+          vectorCopy(X_k[l - 1], X_k[l], dimension);
+          vectorCopy(Z[l - 1], Z[l], dimension);
         }
       }
-      fitness[position] = *y; //Repostion f(x_k)
-      X_k[position] = X; //Reposition x_k
+      //Repostion f(x_k)
+      fitness[position] = *y;
+      //Reposition x_k : X_k[pos] = X_tmp
+      vectorCopy(X_tmp, X_k[position], dimension);
+      // Reposition z_k : Z[pos] = Z_tmp
+      vectorCopy(Z_tmp, Z[position], dimension);
     }
 
-    // uptdate s_sigma // TO BE CHECKED
-    for(int i = 0; i< dimension; i ++)
+    // uptdate s_sigma // TO BE CHECKED => CHECKED by toni
+    for(size_t j = 0; j < dimension; j++)
     {
       double sum = 0;  // sum = sum(zk); zk in P
-      for(int j = 0; j < mu ;  j++) // we take the mu best in Z
+      for(size_t k = 0; k < mu; k++) // we take the mu best in Z
       {
-        sum = sum + Z[j][i];
+        sum = sum + Z[k][j];
       }
-      s_sigma[i] = (1-c_sigma)*s_sigma[i] + sqrt(c_sigma*(2 - c_sigma)*mu)/mu * sum;
+      s_sigma[j] = (1-c_sigma)*s_sigma[j] \
+                  + sqrt(c_sigma*(2 - c_sigma)*mu)/double(mu) * sum;
     }
 
     // update Sigma
@@ -134,29 +148,24 @@ void algo4(evaluate_function_t evaluate,
 
 
     // update X
-    for(int i = 0 ; i < dimension ; i ++)
+    for(size_t j = 0; j < dimension; j++)
     {
       double sumXk = 0;
-      for (int j = 0 ; j < mu ; j++)
+      for (size_t k = 0; k < mu; k++)
       {
-        sumXk = sumXk + X_k[j][i];
+        sumXk = sumXk + X_k[k][j];
       }
-      X[i] = (double)sumXk/mu;
+      X[j] = (double)sumXk/mu;
     }
 
 
     /*
-    // Select the mu best solution + update X_best
-    select_mu_best(mu, lambda, X_k, Z, fitnessFunction, population);
-
     // Better to do that inline (because we need several output)
     s_sigma = (1-cs)*s_sigma + sqrt(cs*(2-cs))*(sqrt(mu)/mu) * sumVectors(Z, population, lambda, n);
     Sigma = elementProduct(Sigma, \
       exp(abs(s_sigma)/(2*d_i) - 1) \
       * exp((cs/d)*abs(s_sigma)/(esperanceNormalDistri) - 1)
       ,n);
-    // Warning here, sum of vectors
-    X = (1/mu)*sumVectors(X_k, population, lambda, n);
     */
 
     // utilise t-on vraiment un critère d'arrêt ?
@@ -200,6 +209,12 @@ void printMatrix(double** array, size_t n, size_t m)
     }
     cout << endl;
   }
+}
+
+void vectorCopy(double* a, double* b, size_t n)
+{
+  for (size_t i = 0; i < n; i++)
+    b[i] = a[i];
 }
 
 void elementProduct(double* a, double* b, double* result, size_t n)
@@ -326,60 +341,4 @@ void my_grid_search(evaluate_function_t evaluate,
   coco_free_memory(grid_step);
 }
 
-#endif
-
-
-#if 0
-
-
-void fmin(void* fitnessFunction, int n, int lambda, int maxIterations)
-{
-  int mu = (int) lambda/4;
-  float cs = sqrt(mu/(n+mu)); // normalization factor?
-  float d = 1 + sqrt(mu/n); // damping factor for cs ?
-  float d_i = 3*n; // or vector ?
-
-  // Random generator (normal distribution)
-  random_device rd;
-  mt19937 gen(rd()); //Mersenne Twister 19937 generator
-  normal_distribution<> N(0,1);
-
-  // ======================================================
-  // INITIALIZATION
-  // ======================================================
-  float X[n]; // To be randomely initialized
-  float X_best[n];
-  float Sigma[n]; // idem
-  float s_sigma = 0; // search path ? not a vector ?
-  bool happy = false;
-  int counter = 0;
-  bool population[mu];
-
-
-  while (!happy && counter < maxIterations)
-  {
-    float Z[lambda][n];
-    float X_k[lambda][n];
-
-    for (size_t k = 0; k < lambda; k++)
-    {
-      normalVector(Z, N, gen, lambda, n);
-      X_k[k] = arraySum(X + elementProduct(Sigma, Z[k]), n);
-    }
-    // Select the mu best solution + update X_best
-    select_mu_best(mu, lambda, X_k, Z, fitnessFunction, population);
-
-    // Better to do that inline (because we need several output)
-    s_sigma = (1-cs)*s_sigma + sqrt(cs*(2-cs))*(sqrt(mu)/mu) * sumVectors(Z, population, lambda, n);
-    Sigma = elementProduct(Sigma, \
-      exp(abs(s_sigma)/(2*d_i) - 1) \
-      * exp((cs/d)*abs(s_sigma)/(esperanceNormalDistri) - 1)
-      ,n);
-    // Warning here, sum of vectors
-    X = (1/mu)*sumVectors(X_k, population, lambda, n);
-
-    counter++;
-  }
-  std::cout << "/* Best Solution :  */" << printArray(X_best, n) << std::endl;
-}
 #endif

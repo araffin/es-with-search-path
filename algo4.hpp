@@ -20,6 +20,7 @@ void select_mu_best(double mu, double lambda, double** X_k, double** Z, evaluate
 
 void printArray(double* array, size_t n);
 void printMatrix(double** array, size_t n, size_t m);
+void vectorCopy(double* a, double* b, size_t n);
 void elementProduct(double* a, double* b, double* result, size_t n);
 void arraySum(double* a, double* b, double* result, size_t n);
 void sumVectors(double** mat, double* result, size_t k, size_t n);
