@@ -42,9 +42,9 @@ void algo4(evaluate_function_t evaluate,
   int lambda; // lambda is given, how do we have it ? 
   int mu = (int) lambda/4;
   // d and d_i uninitilized ? --> done !
-  double d = 1 + sqrt(mu/dimension); 
+  double d = 1 + sqrt((double)mu/dimension); 
   double di = 3*dimension; 
-  double c_sigma = sqrt(mu/(dimension + mu)); 
+  double c_sigma = sqrt((double)mu/(dimension + mu)); 
   // offspring population
   double** X_k;
   // Mutation vectors
@@ -98,14 +98,13 @@ void algo4(evaluate_function_t evaluate,
 
     select_mu_best(mu, lambda, X_k, Z, evaluate); 
 
-    // uptdate s_sigma
-
+    // uptdate s_sigma // TO BE CHECKED
     for(int i = 0; i< dimension; i ++)
     {
       double sum = 0;  // sum = sum(zk); zk in P
       for(int j = 0; j < mu ;  j++) // we take the mu best in Z
       {
-        sum = sum + Z[j][i]; /// TO BE CHECKED
+        sum = sum + Z[j][i]; 
       }
       s_sigma[i] = (1-c_sigma)*s_sigma[i] + sqrt(c_sigma*(2 - c_sigma)*mu)/mu * sum;
     }
