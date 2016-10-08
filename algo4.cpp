@@ -95,6 +95,22 @@ void algo4(evaluate_function_t evaluate,
       // x_k = x + sigma o z_k
       arraySum(X, product_result, X_k[k], dimension);
     }
+
+    select_mu_best(mu, lambda, X_k, Z, evaluate); 
+
+    // uptdate s_sigma
+
+    for(int i = 0; i< dimension; i ++)
+    {
+      double sum = 0;  // sum = sum(zk); zk in P
+      for(int j = 0; j < mu ;  j++) // we take the mu best in Z
+      {
+        sum = sum + Z[j][i]; /// TO BE CHECKED
+      }
+      s_sigma[i] = (1-c_sigma)*s_sigma[i] + sqrt(c_sigma*(2 - c_sigma)*mu)/mu * sum;
+    }
+
+
     /*
     // Select the mu best solution + update X_best
     select_mu_best(mu, lambda, X_k, Z, fitnessFunction, population);
@@ -121,6 +137,17 @@ void algo4(evaluate_function_t evaluate,
   coco_free_memory(y);
 }
 
+
+/* Selection function 
+So far I have considered that this function will classify the best member of X_k and Z at the fist positions
+ie P will be the mu first columns of X_k and Z (to avoid having new matrix) but I don't know if it is the best way
+
+*/
+
+void select_mu_best(double mu, double lambda, double** X_k, double** Z, evaluate_function_t evaluate)
+{
+
+}
 
 void printArray(double* array, size_t n)
 {
