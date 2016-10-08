@@ -39,16 +39,17 @@ void algo4(evaluate_function_t evaluate,
   double s_sigma[dimension] = {0}; // search path --> vector !
   bool happy = false;
   int counter = 0;
-  int lambda; // lambda is given, how do we have it ? 
+  int lambda; // lambda is given, how do we have it ?
   int mu = (int) lambda/4;
   // d and d_i uninitilized ? --> done !
-  double d = 1 + sqrt((double)mu/dimension); 
-  double di = 3*dimension; 
-  double c_sigma = sqrt((double)mu/(dimension + mu)); 
+  double d = 1 + sqrt((double)mu/dimension);
+  double di = 3*dimension;
+  double c_sigma = sqrt((double)mu/(dimension + mu));
   // offspring population
   double** X_k;
   // Mutation vectors
   double** Z;
+  double fitness[lambda];
   // Matrix Initialization
   X_k = new double*[lambda];
   Z = new double*[lambda];
@@ -96,7 +97,25 @@ void algo4(evaluate_function_t evaluate,
       arraySum(X, product_result, X_k[k], dimension);
     }
 
-    select_mu_best(mu, lambda, X_k, Z, evaluate); 
+    for (size_t k = 0; k <= lambda; k++)
+    {
+      X = X_k[k];
+      evaluate(X, y); //Evaluate f(x_k) and store the result in y
+      int position = k; //Variable used to sort the X_k array
+      if(k > 0)
+      {
+        //Find the position of x_k given f(x_k)
+        while(*y <= fitness[position-1] && position > 0) position--;
+        for (size_t l = k; l > position; l--)
+        {
+          //Move x_k and f(x_k) backwards till position
+          fitness[l] = fitness[l - 1];
+          X_k[l] = X_k[l - 1];
+        }
+      }
+      fitness[position] = *y; //Repostion f(x_k)
+      X_k[position] = X; //Reposition x_k
+    }
 
     // uptdate s_sigma // TO BE CHECKED
     for(int i = 0; i< dimension; i ++)
@@ -104,7 +123,7 @@ void algo4(evaluate_function_t evaluate,
       double sum = 0;  // sum = sum(zk); zk in P
       for(int j = 0; j < mu ;  j++) // we take the mu best in Z
       {
-        sum = sum + Z[j][i]; 
+        sum = sum + Z[j][i];
       }
       s_sigma[i] = (1-c_sigma)*s_sigma[i] + sqrt(c_sigma*(2 - c_sigma)*mu)/mu * sum;
     }
@@ -117,7 +136,7 @@ void algo4(evaluate_function_t evaluate,
     // update X
     for(int i = 0 ; i < dimension ; i ++)
     {
-      double sumXk = 0; 
+      double sumXk = 0;
       for (int j = 0 ; j < mu ; j++)
       {
         sumXk = sumXk + X_k[j][i];
@@ -153,7 +172,7 @@ void algo4(evaluate_function_t evaluate,
 }
 
 
-/* Selection function 
+/* Selection function
 So far I have considered that this function will classify the best member of X_k and Z at the fist positions
 ie P will be the mu first columns of X_k and Z (to avoid having new matrix) but I don't know if it is the best way
 
