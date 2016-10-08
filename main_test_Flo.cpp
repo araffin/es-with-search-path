@@ -19,7 +19,7 @@ cout << "lambda,mu = " << lambda << " , " << mu << endl;
 double c_sigma = sqrt((double)mu/(dimension + mu)); 
 cout << "c_sigma = " << c_sigma << endl; 
 double s_sigma[dimension] = {0}; // search path --> vector !
-
+double X[dimension] = {0};
 double** X_k;
   // Mutation vectors
 double** Z;
@@ -60,6 +60,19 @@ X_k = new double*[lambda];
     s_sigma[i] = (1-c_sigma)*s_sigma[i] + sqrt(c_sigma*(2 - c_sigma)*mu)/mu * sum;
     cout << "s_sigma[" << i << "] = " << s_sigma[i] << endl; 
   }
+
+
+    // update X
+    for(int i = 0 ; i < dimension ; i ++)
+    {
+      double sumXk = 0; 
+      for (int j = 0 ; j < mu ; j++)
+      {
+        sumXk = sumXk + X_k[j][i];
+      }
+      X[i] = (double)sumXk/mu;
+      cout << X[i] << endl;
+    }
 
 
   cout << "s_sigma = " << s_sigma << endl;

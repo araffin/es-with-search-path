@@ -109,6 +109,22 @@ void algo4(evaluate_function_t evaluate,
       s_sigma[i] = (1-c_sigma)*s_sigma[i] + sqrt(c_sigma*(2 - c_sigma)*mu)/mu * sum;
     }
 
+    // update Sigma
+
+
+
+
+    // update X
+    for(int i = 0 ; i < dimension ; i ++)
+    {
+      double sumXk = 0; 
+      for (int j = 0 ; j < mu ; j++)
+      {
+        sumXk = sumXk + X_k[j][i];
+      }
+      X[i] = (double)sumXk/mu;
+    }
+
 
     /*
     // Select the mu best solution + update X_best
