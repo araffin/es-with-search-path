@@ -41,8 +41,9 @@ void algo4(evaluate_function_t evaluate,
   int counter = 0;
   int lambda;
   int mu = (int) lambda/4;
-  // d and d_i uninitilized ?
-
+  // d and d_i uninitilized ? --> done !
+  double d = 1 + sqrt(mu/dimension); 
+  double di = 3*dimension; 
   // offspring population
   double** X_k;
   // Mutation vectors
