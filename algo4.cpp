@@ -42,9 +42,9 @@ void algo4(evaluate_function_t evaluate,
   int counter = 0;
   size_t lambda = 10;
   size_t mu = (size_t) lambda/4;
-  // d and d_i uninitilized ? --> done !
+  // Damping factors
   double d = 1 + sqrt((double)mu/dimension);
-  double di = 3*dimension;
+  double di = 3*dimension; // double ? not an int ?
   double c_sigma = sqrt((double)mu/(dimension + mu));
   // offspring population
   double** X_k;
@@ -76,13 +76,12 @@ void algo4(evaluate_function_t evaluate,
   // a t-on besoin d'un critère d'arrêt ? Sinon on fait juste le nb d'itérations comme dans les exemples
   double stop_criterion = 0.0002; // juste pour tester les 3 dernières lignes de la boucle
 
-  // printArray(X, dimension);
   // double *x = coco_allocate_vector(dimension);
   double *y = coco_allocate_vector(number_of_objectives);
 
-  for (int i = 0; i < dimension ; i ++)
+  for (size_t j = 0; j < dimension ; j++)
   {
-    Sigma[i] = 1;
+    Sigma[j] = 1;
   }
 
   while (!happy && counter < max_budget)
@@ -107,7 +106,7 @@ void algo4(evaluate_function_t evaluate,
       // Z_tmp = Z[k]
       vectorCopy(Z[k], Z_tmp, dimension);
       //Evaluate f(x_k) and store the result in y
-      evaluate(X_tmp, y); 
+      evaluate(X_tmp, y);
       //Variable used to sort the X_k array
       size_t position = k;
       if(k > 0)
