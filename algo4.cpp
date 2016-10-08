@@ -44,7 +44,7 @@ void algo4(evaluate_function_t evaluate,
   size_t mu = (size_t) lambda/4;
   // Damping factors
   double d = 1 + sqrt((double)mu/dimension);
-  double di = 3*dimension; // double ? not an int ?
+  double di = 3*dimension; // double ? not an int ? // tt mettre en double simplifie non ?
   double c_sigma = sqrt((double)mu/(dimension + mu));
   // offspring population
   double** X_k;
@@ -142,8 +142,15 @@ void algo4(evaluate_function_t evaluate,
     }
 
     // update Sigma
-
-
+    double exp1=0;
+    double exp2 = exp((normE(s_sigma, dimension) / (sqrt(dimension)*(1 - 1/4*dimension + 1/(21*pow(dimension, 2))))) -1);
+    exp2 = pow(exp2, c_sigma/d);
+    for(size_t j = 0; j < dimension; j++)
+    {
+      exp1 = exp((abs(Sigma[j]) / (sqrt(2)/sqrt(coco_pi))) -1);
+      exp1 = pow(exp1, 1/di);
+      Sigma[j] = Sigma[j]*exp1*exp2;
+    }
 
 
     // update X
@@ -189,6 +196,16 @@ ie P will be the mu first columns of X_k and Z (to avoid having new matrix) but 
 void select_mu_best(double mu, double lambda, double** X_k, double** Z, evaluate_function_t evaluate)
 {
 
+}
+
+double normE(double *m, size_t dimension)
+{
+  double out=0;
+  for (int i=0; i<dimension; ++i)
+  {
+    out += pow(m[i], 2);
+  }
+  return sqrt(out);
 }
 
 void printArray(double* array, size_t n)

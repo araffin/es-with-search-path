@@ -17,7 +17,7 @@ void algo4(evaluate_function_t evaluate,
                     const size_t max_budget);
 
 void select_mu_best(double mu, double lambda, double** X_k, double** Z, evaluate_function_t evaluate);
-
+double normE(double *m, size_t dimension);
 void printArray(double* array, size_t n);
 void printMatrix(double** array, size_t n, size_t m);
 void vectorCopy(double* a, double* b, size_t n);
