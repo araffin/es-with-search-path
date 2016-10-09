@@ -104,10 +104,10 @@ int main(void) {
   printf("Running the example experiment... (might take time, be patient)\n");
   fflush(stdout);
 
-  example_experiment("bbob-biobj", "bbob-biobj", random_generator);
+  // example_experiment("bbob-biobj", "bbob-biobj", random_generator);
 
-  /* Uncomment the line below to run the same example experiment on the bbob suite
-  example_experiment("bbob", "bbob", random_generator); */
+  // Uncomment the line below to run the same example experiment on the bbob suite
+  example_experiment("bbob", "bbob", random_generator);
 
   printf("Done!\n");
   fflush(stdout);
@@ -166,13 +166,12 @@ void example_experiment(const char *suite_name,
         break;
 
       /* Call the optimization algorithm for the remaining number of evaluations */
-      my_random_search(evaluate_function,
+      algo4(evaluate_function,
                        dimension,
                        coco_problem_get_number_of_objectives(PROBLEM),
                        coco_problem_get_smallest_values_of_interest(PROBLEM),
                        coco_problem_get_largest_values_of_interest(PROBLEM),
-                       (size_t) evaluations_remaining,
-                       random_generator);
+                       (size_t) evaluations_remaining);
 
       /* Break the loop if the algorithm performed no evaluations or an unexpected thing happened */
       if (coco_problem_get_evaluations(PROBLEM) == evaluations_done) {
