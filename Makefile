@@ -14,7 +14,7 @@
 
 LDFLAGS += -lm
 #CCFLAGS = -g -ggdb -std=c89 -pedantic -Wall -Wextra -Wstrict-prototypes -Wshadow -Wno-sign-compare -Wconversion
-CPPFLAGS = -std=c++11 -Wall -Wno-sign-compare -Wconversion -fpermissive -g
+CPPFLAGS = -std=c++11 -Wall -Wno-sign-compare -Wconversion -fpermissive
 ########################################################################
 ## Toplevel targets
 all: experiment

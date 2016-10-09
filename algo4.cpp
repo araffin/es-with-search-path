@@ -91,6 +91,7 @@ void algo4(evaluate_function_t evaluate,
     {
       // z_k = N(0,I)
       normalMatrix(Z, N, gen, lambda, dimension);
+
       // temp variable to store intermediate result
       double product_result[dimension];
       elementProduct(Sigma, Z[k], product_result, dimension);
@@ -99,14 +100,16 @@ void algo4(evaluate_function_t evaluate,
     }
 
     // Select the mu best
-    for (size_t k = 0; k <= lambda; k++)
+    for (size_t k = 0; k < lambda; k++)
     {
       // X_tmp = X_k[k]
       vectorCopy(X_k[k], X_tmp, dimension);
       // Z_tmp = Z[k]
       vectorCopy(Z[k], Z_tmp, dimension);
+
       //Evaluate f(x_k) and store the result in y
       evaluate(X_tmp, y);
+
       //Variable used to sort the X_k array
       size_t position = k;
       if(k > 0)
@@ -121,12 +124,13 @@ void algo4(evaluate_function_t evaluate,
           vectorCopy(Z[l - 1], Z[l], dimension);
         }
       }
-      //Repostion f(x_k)
+      // Repostion f(x_k)
       fitness[position] = *y;
-      //Reposition x_k : X_k[pos] = X_tmp
+      // Reposition x_k : X_k[pos] = X_tmp
       vectorCopy(X_tmp, X_k[position], dimension);
       // Reposition z_k : Z[pos] = Z_tmp
       vectorCopy(Z_tmp, Z[position], dimension);
+
     }
 
     // uptdate s_sigma // TO BE CHECKED => CHECKED by toni
