@@ -167,12 +167,12 @@ void example_experiment(const char *suite_name,
 
       /* Call the optimization algorithm for the remaining number of evaluations */
       algo4(evaluate_function,
-                       dimension,
-                       coco_problem_get_number_of_objectives(PROBLEM),
-                       coco_problem_get_smallest_values_of_interest(PROBLEM),
-                       coco_problem_get_largest_values_of_interest(PROBLEM),
-                       (size_t) evaluations_remaining, 
-                       random_generator);
+        dimension,
+        coco_problem_get_number_of_objectives(PROBLEM),
+        coco_problem_get_smallest_values_of_interest(PROBLEM),
+        coco_problem_get_largest_values_of_interest(PROBLEM),
+        (size_t) evaluations_remaining, 
+        random_generator);
 
       /* Break the loop if the algorithm performed no evaluations or an unexpected thing happened */
       if (coco_problem_get_evaluations(PROBLEM) == evaluations_done) {
