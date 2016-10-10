@@ -43,9 +43,9 @@ void algo4(evaluate_function_t evaluate,
   size_t lambda = 100;
   size_t mu = (size_t) lambda/4;
   // Damping factors
-  double d = 1 + sqrt((double)mu/dimension);
-  double di = 3*dimension; // double ? not an int ? // tt mettre en double simplifie non ?
-  double c_sigma = sqrt((double)mu/(dimension + mu));
+  double d = 1 + sqrt((double)mu/(double)dimension); 
+  size_t di = 3*dimension; 
+  double c_sigma = sqrt((double)mu/(double)(dimension + mu)); 
   // offspring population
   double** X_k;
   // Mutation vectors
@@ -149,7 +149,7 @@ void algo4(evaluate_function_t evaluate,
         sum = sum + Z[k][j];
       }
       s_sigma[j] = (1-c_sigma)*s_sigma[j] \
-                  + sqrt(c_sigma*(2 - c_sigma)*mu)/double(mu) * sum;
+                  + sqrt(c_sigma*(2 - c_sigma)*(double)mu)/double(mu) * sum; 
     }
 
     // update Sigma
@@ -172,7 +172,8 @@ void algo4(evaluate_function_t evaluate,
       {
         sumXk = sumXk + X_k[k][j];
       }
-      X[j] = (double)sumXk/mu;
+      X[j] = (double)sumXk/(double)mu; 
+
     }
 
 
