@@ -14,7 +14,8 @@ void algo4(evaluate_function_t evaluate,
                     const size_t number_of_objectives,
                     const double *lower_bounds,
                     const double *upper_bounds,
-                    const size_t max_budget);
+                    const size_t max_budget, 
+                    coco_random_state_t *random_generator);
 
 void select_mu_best(double mu, double lambda, double** X_k, double** Z, evaluate_function_t evaluate);
 double normE(double *m, size_t dimension);
