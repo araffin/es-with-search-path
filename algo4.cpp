@@ -1,5 +1,6 @@
 // Evolution Strategy with search path
 // as describe in https://www.lri.fr/~hansen/es-overview-2015.pdf [Algo 4]
+// Post Process : python -m bbob_pproc [-o OUTPUT_FOLDERNAME] YOURDATAFOLDER [MORE_DATAFOLDERS]
 #include "algo4.hpp"
 #include <assert.h>
 using namespace std;
