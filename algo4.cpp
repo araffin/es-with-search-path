@@ -2,7 +2,6 @@
 // as describe in https://www.lri.fr/~hansen/es-overview-2015.pdf [Algo 4]
 #include "algo4.hpp"
 #include <assert.h>
-
 using namespace std;
 
 /**
@@ -24,7 +23,8 @@ void algo4(evaluate_function_t evaluate,
                     const size_t number_of_objectives,
                     const double *lower_bounds,
                     const double *upper_bounds,
-                    const size_t max_budget)
+                    const size_t max_budget, 
+                    coco_random_state_t *random_generator)
 {
 
   // ======================================================
@@ -64,7 +64,7 @@ void algo4(evaluate_function_t evaluate,
   {
      for (size_t j = 0; j < dimension; j++ )
      {
-        X_k[i][j] = 0;
+        X_k[i][j] = lower_bounds[j] + (upper_bounds[j] - lower_bounds[j])*coco_random_uniform(random_generator);
      }
   }
 
@@ -97,7 +97,14 @@ void algo4(evaluate_function_t evaluate,
       elementProduct(Sigma, Z[k], product_result, dimension);
       // x_k = x + sigma o z_k
       arraySum(X, product_result, X_k[k], dimension);
+
+      //check boundaries
+      for(size_t j = 0; j < dimension; j++)
+      {
+        X_k[k][j] = fmax(lower_bounds[j], fmin(X_k[k][j], upper_bounds[j]));
+      }
     }
+
 
     // Select the mu best
     for (size_t k = 0; k < lambda; k++)
