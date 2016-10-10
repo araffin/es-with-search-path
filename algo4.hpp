@@ -28,3 +28,6 @@ void sumVectors(double** mat, double* result, size_t k, size_t n);
 void normalMatrix(double** mat, std::normal_distribution<> N, std::mt19937 gen,
                   size_t nb_rows, size_t nb_cols);
 void freeMatrix(double** mat, size_t nb_rows);
+
+// postprocessing : 
+// python -m bbob_pproc -o out YOURDATAFOLDER

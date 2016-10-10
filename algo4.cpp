@@ -40,7 +40,7 @@ void algo4(evaluate_function_t evaluate,
   double s_sigma[dimension] = {0}; // search path --> vector !
   bool happy = false;
   int counter = 0;
-  size_t lambda = 10;
+  size_t lambda = 100;
   size_t mu = (size_t) lambda/4;
   // Damping factors
   double d = 1 + sqrt((double)mu/dimension);
