@@ -75,7 +75,7 @@ void algo4(evaluate_function_t evaluate,
   normal_distribution<> N(0,1);
 
   // a t-on besoin d'un critère d'arrêt ? Sinon on fait juste le nb d'itérations comme dans les exemples
-  double stop_criterion = 0.0002; // juste pour tester les 3 dernières lignes de la boucle
+  // double stop_criterion = 0.0002; // juste pour tester les 3 dernières lignes de la boucle
 
   // double *x = coco_allocate_vector(dimension);
   double *y = coco_allocate_vector(number_of_objectives);
@@ -177,19 +177,9 @@ void algo4(evaluate_function_t evaluate,
 
     }
 
-
-    /*
-    // Better to do that inline (because we need several output)
-    s_sigma = (1-cs)*s_sigma + sqrt(cs*(2-cs))*(sqrt(mu)/mu) * sumVectors(Z, population, lambda, n);
-    Sigma = elementProduct(Sigma, \
-      exp(abs(s_sigma)/(2*d_i) - 1) \
-      * exp((cs/d)*abs(s_sigma)/(esperanceNormalDistri) - 1)
-      ,n);
-    */
-
     // utilise t-on vraiment un critère d'arrêt ?
     evaluate(X,y);
-    happy = (y[0] < stop_criterion);
+    // happy = (y[0] < stop_criterion);
 
     counter++;
   }
@@ -304,70 +294,3 @@ void freeMatrix(double** mat, size_t nb_rows)
   }
   delete mat;
 }
-
-#if 0
-void my_grid_search(evaluate_function_t evaluate,
-                    const size_t dimension,
-                    const size_t number_of_objectives,
-                    const double *lower_bounds,
-                    const double *upper_bounds,
-                    const size_t max_budget){
-
-  double *x = coco_allocate_vector(dimension);
-  double *y = coco_allocate_vector(number_of_objectives);
-  long *nodes = (long *) coco_allocate_memory(sizeof(long) * dimension);
-  double *grid_step = coco_allocate_vector(dimension);
-  size_t i, j;
-  size_t evaluations = 0;
-  long max_nodes = (long) floor(pow((double) max_budget, 1.0 / (double) dimension)) - 1;
-
-  /* Take care of the borderline case */
-  if (max_nodes < 1) max_nodes = 1;
-
-  /* Initialization */
-  for (j = 0; j < dimension; j++) {
-    nodes[j] = 0;
-    grid_step[j] = (upper_bounds[j] - lower_bounds[j]) / (double) max_nodes;
-  }
-
-  while (evaluations < max_budget) {
-
-    /* Construct x and evaluate it */
-    for (j = 0; j < dimension; j++) {
-      x[j] = lower_bounds[j] + grid_step[j] * (double) nodes[j];
-    }
-
-    /* Call the evaluate function to evaluate x on the current problem (this is where all the COCO logging
-     * is performed) */
-    evaluate(x, y);
-    evaluations++;
-
-    /* Inside the grid, move to the next node */
-    if (nodes[0] < max_nodes) {
-      nodes[0]++;
-    }
-
-    /* At an outside node of the grid, move to the next level */
-    else if (max_nodes > 0) {
-      for (j = 1; j < dimension; j++) {
-        if (nodes[j] < max_nodes) {
-          nodes[j]++;
-          for (i = 0; i < j; i++)
-            nodes[i] = 0;
-          break;
-        }
-      }
-
-      /* At the end of the grid, exit */
-      if ((j == dimension) && (nodes[j - 1] == max_nodes))
-        break;
-    }
-  }
-
-  coco_free_memory(x);
-  coco_free_memory(y);
-  coco_free_memory(nodes);
-  coco_free_memory(grid_step);
-}
-
-#endif
