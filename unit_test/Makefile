@@ -8,7 +8,7 @@ algo4: algo4.o
 
 ########################################################################
 ## Additional dependencies
-algo4.o: test_algo.cpp
+algo4.o: test_algo.h test_algo.cpp
 	g++ -c ${CPPFLAGS} -o algo4.o test_algo.cpp
 
 # To remove generated files

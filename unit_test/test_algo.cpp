@@ -5,6 +5,8 @@
 #include <math.h>
 #include <random> // Normal distribution
 #include <assert.h>
+#include "test_algo.h"
+
 using namespace std;
 
 /* Selection function
@@ -107,45 +109,14 @@ void freeMatrix(double** mat, size_t nb_rows)
   delete mat;
 }
 
-/**
- * A grid search optimizer that can be used for single- as well as multi-objective optimization.
- *
- * @param evaluate The evaluation function used to evaluate the solutions.
- * @param dimension The number of variables (= n in our case)
- * @param number_of_objectives The number of objectives. = 1 in our case
- * @param lower_bounds The lower bounds of the region of interested (a vector containing dimension values).
- * @param upper_bounds The upper bounds of the region of interested (a vector containing dimension values).
- * @param max_budget The maximal number of evaluations.
- *
- * If max_budget is not enough to cover even the smallest possible grid, only the first max_budget
- * nodes of the grid are evaluated.
- */
-
-
-void poly(double* x, double* y)
-{
-  y[0] = 4*x[0]*x[0] + 2*x[0] + 5;
-}
-
-void poly2(double* x, double* y)
-{
-  y[0] = 18*x[0]*x[0] + 2*x[0] -20;
-}
-
-void twoDim(double* x, double* y)
-{
-  double a = 4*x[1]*x[1] + 2*x[1] + 5;
-  double b = 18*x[0]*x[0] + 2*x[0] -20;
-  y[0] = a + b;
-}
 
 #define PI 3.14159265359
 
-void algo4(void (*evaluate(double*, double*)),
+void algo4(void (*evaluate)(double*, double*),
                     const size_t dimension,
                     const size_t number_of_objectives,
-                    const double *lower_bounds,
-                    const double *upper_bounds,
+                    double *lower_bounds,
+                    double *upper_bounds,
                     const size_t max_budget)
 {
 
@@ -155,6 +126,7 @@ void algo4(void (*evaluate(double*, double*)),
 
   assert(number_of_objectives == 1);
 
+  // double stop_criterion = 0.00001; 
   double X[dimension] = {0}; // To be randomely initialized - double (not float) to be used with the function evaluate
   double X_tmp[dimension] = {0}; // Used when sorting the solutions
   double Z_tmp[dimension] = {0}; // Used when sorting the solutions
@@ -162,7 +134,7 @@ void algo4(void (*evaluate(double*, double*)),
   double s_sigma[dimension] = {0}; // search path --> vector !
   bool happy = false;
   int counter = 0;
-  size_t lambda = 50;
+  size_t lambda = 20;
   size_t mu = (size_t) lambda/4;
   // Damping factors
   double d = 1 + sqrt((double)mu/(double)dimension); 
@@ -173,13 +145,16 @@ void algo4(void (*evaluate(double*, double*)),
   // Mutation vectors
   double** Z;
   double fitness[lambda];
+  double E_HALF_NORMAL = sqrt(2./PI);
+  double _d = double(dimension);
+  double E_MULTIDIM_NORMAL = sqrt(_d)*(1-1./(4*_d)+1./(21*_d*_d));
   // Matrix Initialization
   X_k = new double*[lambda];
   Z = new double*[lambda];
-  for (size_t i = 0; i < lambda; i++ )
+  for (size_t k = 0; k < lambda; k++)
   {
-    X_k[i] = new double[dimension];
-    Z[i] = new double[dimension];
+    X_k[k] = new double[dimension];
+    Z[k] = new double[dimension];
   }
 
   // Random generator (normal distribution)
@@ -187,15 +162,18 @@ void algo4(void (*evaluate(double*, double*)),
   mt19937 gen(rd()); //Mersenne Twister 19937 generator
   normal_distribution<> N(0,1);
   uniform_real_distribution<double> random_uniform(0.0,1.0);
-  // a t-on besoin d'un critère d'arrêt ? Sinon on fait juste le nb d'itérations comme dans les exemples
-  // double stop_criterion = 0.0002; // juste pour tester les 3 dernières lignes de la boucle
-
-  // initialize matrix elements
-  for (size_t i = 0; i < lambda; i++ )
+  
+  for (size_t j = 0; j < dimension; j++)
   {
-    for (size_t j = 0; j < dimension; j++ )
+    X[j] = lower_bounds[j] + (upper_bounds[j] - lower_bounds[j])*random_uniform(gen);
+  }
+  
+  // initialize matrix elements
+  for (size_t k = 0; k < lambda; k++)
+  {
+    for (size_t j = 0; j < dimension; j++)
     {
-      X_k[i][j] = lower_bounds[j] + (upper_bounds[j] - lower_bounds[j])*random_uniform(gen);
+      X_k[k][j] = lower_bounds[j] + (upper_bounds[j] - lower_bounds[j])*random_uniform(gen);
     }
   }
   // double *x = coco_allocate_vector(dimension);
@@ -213,6 +191,7 @@ void algo4(void (*evaluate(double*, double*)),
     {
       // z_k = N(0,I)
       normalMatrix(Z, N, gen, lambda, dimension);
+      // printArray(X_k[k],dimension);
 
       // temp variable to store intermediate result
       double product_result[dimension];
@@ -225,6 +204,7 @@ void algo4(void (*evaluate(double*, double*)),
       {
         X_k[k][j] = fmax(lower_bounds[j], fmin(X_k[k][j], upper_bounds[j]));
       }
+      // printArray(X_k[k],dimension);
     }
 
 
@@ -275,12 +255,12 @@ void algo4(void (*evaluate(double*, double*)),
     }
 
     // update Sigma
-    double exp1=0;
-    double exp2 = exp((normE(s_sigma, dimension) / (sqrt(dimension)*(1 - 1/4*dimension + 1/(21*pow(dimension, 2))))) -1);
+    double exp1 = 0;
+    double exp2 = exp((normE(s_sigma, dimension)/E_MULTIDIM_NORMAL) -1);
     exp2 = pow(exp2, c_sigma/d);
     for(size_t j = 0; j < dimension; j++)
     {
-      exp1 = exp((abs(Sigma[j]) / (sqrt(2)/sqrt(PI))) -1);
+      exp1 = exp((abs(Sigma[j])/E_HALF_NORMAL -1));
       exp1 = pow(exp1, 1/di);
       Sigma[j] = Sigma[j]*exp1*exp2;
     }
@@ -294,14 +274,15 @@ void algo4(void (*evaluate(double*, double*)),
       {
         sumXk = sumXk + X_k[k][j];
       }
-      X[j] = (double)sumXk/(double)mu; 
-
+      X[j] = (double)sumXk/(double)mu;
+      X[j] = fmax(lower_bounds[j], fmin(X[j], upper_bounds[j]));
     }
 
     // utilise t-on vraiment un critère d'arrêt ?
     evaluate(X,y);
     // happy = (y[0] < stop_criterion);
-    printArray(y,number_of_objectives);
+    // printArray(y,number_of_objectives);
+    // printArray(X,dimension);
 
     counter++;
   }
@@ -314,12 +295,38 @@ void algo4(void (*evaluate(double*, double*)),
   // coco_free_memory(y);
 }
 
+void poly(double* x, double* y)
+{
+  y[0] = 4*x[0]*x[0] + 2*x[0] + 5;
+}
+
+void poly2(double* x, double* y)
+{
+  y[0] = 18*x[0]*x[0] + 2*x[0] -20;
+}
+
+void poly3(double* x, double* y)
+{
+  y[0] = 4*x[1]*x[1] + 2*x[1] + 5;
+}
+
+void twoDim(double* x, double* y)
+{
+  double a = 4*x[1]*x[1] + 2*x[1] + 5;
+  double b = 18*x[0]*x[0] + 2*x[0] - 20;
+  y[0] = a + b;
+}
+
 int main(int argc, char const *argv[]) {
-  const double lower[1] = {-10000.};
-  const double upper[1] = {10000.};
   size_t dim = 2;
   size_t number_of_objectives = 1;
   size_t budget = 100;
-  algo4(&twoDim, dim, number_of_objectives, lower, upper, budget);
+  double lower[dim];
+  double upper[dim];
+  for (size_t j = 0; j < dim; j++) {
+    lower[j] = -10;
+    upper[j] = 10;
+  }
+  algo4(twoDim, dim, number_of_objectives, lower, upper, budget);
   return 0;
 }
