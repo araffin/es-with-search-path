@@ -35,14 +35,14 @@ void algo4(evaluate_function_t evaluate,
 
   assert(number_of_objectives == 1);
 
-  double X[dimension] = {0}; // To be randomely initialized - double (not float) to be used with the function evaluate
-  double X_tmp[dimension] = {0}; // Used when sorting the solutions
-  double Z_tmp[dimension] = {0}; // Used when sorting the solutions
+  double X[dimension]; // To be randomely initialized - double (not float) to be used with the function evaluate
+  double X_tmp[dimension]; // Used when sorting the solutions
+  double Z_tmp[dimension]; // Used when sorting the solutions
   double Sigma[dimension]; // idem
-  double s_sigma[dimension] = {0}; // search path --> vector !
+  double s_sigma[dimension]; // search path --> vector !
   bool happy = false;
   int counter = 0;
-  size_t lambda = 50;
+  size_t lambda = 20;
   size_t mu = (size_t) lambda/4;
   // Damping factors
   double d = 1 + sqrt((double)mu/(double)dimension); 
@@ -100,37 +100,35 @@ void algo4(evaluate_function_t evaluate,
       }
     }
 
-    // Select the mu best
+    // Evaluate the solutions
     for (size_t k = 0; k < lambda; k++)
     {
+      evaluate(X_k[k], y);
+      fitness[k] = y[0];
+    }
+    // Select the mu best (insertion sort)
+    for (size_t k = 0; k < lambda-1; k++)
+    {
+      double y_tmp = fitness[k];
       // X_tmp = X_k[k]
       vectorCopy(X_k[k], X_tmp, dimension);
       // Z_tmp = Z[k]
       vectorCopy(Z[k], Z_tmp, dimension);
-
-      //Evaluate f(x_k) and store the result in y
-      evaluate(X_tmp, y);
-
-      //Variable used to sort the X_k array
-      size_t position = k;
-      if(k > 0)
+      
+      size_t pos = k;
+      while (pos > 0 && fitness[pos-1] > y_tmp)
       {
-        //Find the position of x_k given f(x_k)
-        while(*y <= fitness[position-1] && position > 0) position--;
-        for (size_t l = k; l > position; l--)
-        {
-          //Move x_k and f(x_k) backwards till position
-          fitness[l] = fitness[l - 1];
-          vectorCopy(X_k[l - 1], X_k[l], dimension);
-          vectorCopy(Z[l - 1], Z[l], dimension);
-        }
+        fitness[pos] = fitness[pos-1];
+        vectorCopy(X_k[pos-1], X_k[pos], dimension);
+        vectorCopy(Z[pos-1], Z[pos], dimension);
+        pos--;
       }
       // Repostion f(x_k)
-      fitness[position] = *y;
+      fitness[pos] = y_tmp;
       // Reposition x_k : X_k[pos] = X_tmp
-      vectorCopy(X_tmp, X_k[position], dimension);
+      vectorCopy(X_tmp, X_k[pos], dimension);
       // Reposition z_k : Z[pos] = Z_tmp
-      vectorCopy(Z_tmp, Z[position], dimension);
+      vectorCopy(Z_tmp, Z[pos], dimension);
     }
 
     // update s_sigma
@@ -209,56 +207,6 @@ void vectorCopy(double* a, double* b, size_t n)
 {
   for (size_t i = 0; i < n; i++)
     b[i] = a[i];
-}
-
-void elementProduct(double* a, double* b, double* result, size_t n)
-{
-  for (size_t i = 0; i < n; i++)
-    result[i] = a[i]*b[i];
-}
-
-void arraySum(double* a, double* b, double* result, size_t n)
-{
-  for (size_t i = 0; i < n; i++)
-    result[i] = a[i] + b[i];
-}
-
-/**
- * Sum component wise an array of k vectors of dimension n
- * In fact, it sums the rows of a matrix of size k*n
- * @param mat    a matrix
- * @param result an array containing the result of the operation
- * @param k  number of vectors (= nb of rows)
- * @param n the dimension (= nb of columns)
- */
-void sumVectors(double** mat, double* result, size_t k, size_t n)
-{
-  for (size_t j = 0; j < n; j++) {
-    result[j] = 0;
-    for (size_t i = 0; i < k; i++) {
-      result[j] += mat[i][j];
-    }
-  }
-}
-
-/**
- * Fill a matrix with random numbers drawn from a normal distribution
- * @param mat     a matrix of dimension nb_rows x nb_cols
- * @param N       the normal distribution
- * @param gen     a random generator
- * @param nb_rows
- * @param nb_cols
- */
-void normalMatrix(double** mat, normal_distribution<> N, mt19937 gen,
-                  size_t nb_rows, size_t nb_cols)
-{
-  for (size_t i = 0; i < nb_rows; i++)
-  {
-    for (size_t j = 0; j < nb_cols; j++)
-    {
-      mat[i][j] = N(gen);
-    }
-  }
 }
 
 void freeMatrix(double** mat, size_t nb_rows)
