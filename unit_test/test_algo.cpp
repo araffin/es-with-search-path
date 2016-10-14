@@ -17,10 +17,10 @@ ie P will be the mu first columns of X_k and Z (to avoid having new matrix) but 
 
 double normE(double *m, size_t dimension)
 {
-  double out=0;
-  for (int i=0; i<dimension; ++i)
+  double out = 0;
+  for (size_t i = 0; i < dimension; i++)
   {
-    out += pow(m[i], 2);
+    out += m[i]*m[i];
   }
   return sqrt(out);
 }
@@ -137,7 +137,7 @@ void algo4(void (*evaluate)(double*, double*),
   size_t lambda = 20;
   size_t mu = (size_t) lambda/4;
   // Damping factors
-  double d = 1 + sqrt((double)mu/(double)dimension); 
+  double d = 1. + sqrt((double)mu/(double)dimension); 
   size_t di = 3*dimension; 
   double c_sigma = sqrt((double)mu/(double)(dimension + mu)); 
   // offspring population
@@ -146,8 +146,8 @@ void algo4(void (*evaluate)(double*, double*),
   double** Z;
   double fitness[lambda];
   double E_HALF_NORMAL = sqrt(2./PI);
-  double _d = double(dimension);
-  double E_MULTIDIM_NORMAL = sqrt(_d)*(1-1./(4*_d)+1./(21*_d*_d));
+  double _dim = double(dimension);
+  double E_MULTIDIM_NORMAL = sqrt(_dim)*(1-1./(4*_dim)+1./(21*_dim*_dim));
   // Matrix Initialization
   X_k = new double*[lambda];
   Z = new double*[lambda];
@@ -169,19 +169,21 @@ void algo4(void (*evaluate)(double*, double*),
   }
   
   // initialize matrix elements
-  for (size_t k = 0; k < lambda; k++)
-  {
-    for (size_t j = 0; j < dimension; j++)
-    {
-      X_k[k][j] = lower_bounds[j] + (upper_bounds[j] - lower_bounds[j])*random_uniform(gen);
-    }
-  }
+  // for (size_t k = 0; k < lambda; k++)
+  // {
+  //   for (size_t j = 0; j < dimension; j++)
+  //   {
+  //     X_k[k][j] = lower_bounds[j] + (upper_bounds[j] - lower_bounds[j])*random_uniform(gen);
+  //   }
+  // }
+  
+  
   // double *x = coco_allocate_vector(dimension);
   double y[number_of_objectives];
 
   for (size_t j = 0; j < dimension ; j++)
   {
-    Sigma[j] = 1;
+    Sigma[j] = 0.1;
   }
 
   while (!happy && counter < max_budget)
@@ -250,21 +252,29 @@ void algo4(void (*evaluate)(double*, double*),
       {
         sum = sum + Z[k][j];
       }
+      std::cout << "sum " << sum << std::endl;
+      // s_sig = (1-c_sig)*s_sig + math.sqrt(c_sig*(2-c_sig))
+      // *(math.sqrt(u)/u)*(z.sum(axis=0))
+
       s_sigma[j] = (1-c_sigma)*s_sigma[j] \
-                  + sqrt(c_sigma*(2 - c_sigma)*(double)mu)/double(mu) * sum; 
+                  + sqrt(c_sigma*(2 - c_sigma))*sqrt((double)mu)/double(mu) * sum; 
     }
+    // printArray(s_sigma, dimension);
 
     // update Sigma
+    // sigma = sigma * np.exp((1/d_i)*((abs(s_sig)/ E_half_normal_dis)-1))
+    // *math.exp((c_sig/d)*((np.linalg.norm(s_sig)/E_muldim_normal)-1))
+
     double exp1 = 0;
-    double exp2 = exp((normE(s_sigma, dimension)/E_MULTIDIM_NORMAL) -1);
-    exp2 = pow(exp2, c_sigma/d);
+    double exp2 = exp((c_sigma/d)*((normE(s_sigma, dimension)/E_MULTIDIM_NORMAL)-1));
+    // exp2 = pow(exp2, c_sigma/d);
     for(size_t j = 0; j < dimension; j++)
     {
-      exp1 = exp((abs(Sigma[j])/E_HALF_NORMAL -1));
-      exp1 = pow(exp1, 1/di);
+      exp1 = exp((1./double(di))*((abs(s_sigma[j])/E_HALF_NORMAL)-1));
+      // exp1 = pow(exp1, 1./double(di));
       Sigma[j] = Sigma[j]*exp1*exp2;
     }
-
+    printArray(Sigma, dimension);
 
     // update X
     for(size_t j = 0; j < dimension; j++)
@@ -317,16 +327,21 @@ void twoDim(double* x, double* y)
   y[0] = a + b;
 }
 
+void euclidianNorm(double* x, double* y)
+{
+  y[0] = normE(x, 40);
+}
+
 int main(int argc, char const *argv[]) {
-  size_t dim = 2;
+  size_t dim = 40;
   size_t number_of_objectives = 1;
-  size_t budget = 100;
+  size_t budget = 1000;
   double lower[dim];
   double upper[dim];
   for (size_t j = 0; j < dim; j++) {
     lower[j] = -10;
     upper[j] = 10;
   }
-  algo4(twoDim, dim, number_of_objectives, lower, upper, budget);
+  algo4(euclidianNorm, dim, number_of_objectives, lower, upper, budget);
   return 0;
 }
