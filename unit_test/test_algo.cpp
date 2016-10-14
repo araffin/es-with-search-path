@@ -84,7 +84,7 @@ void algo4(void (*evaluate)(double*, double*),
   double s_sigma[dimension]; // search path --> vector !
   bool happy = false;
   int counter = 0;
-  size_t lambda = 20;
+  size_t lambda = 40;
   size_t mu = (size_t) lambda/4;
   // Damping factors
   double d = 1. + sqrt((double)mu/(double)dimension); 
@@ -145,30 +145,69 @@ void algo4(void (*evaluate)(double*, double*),
       evaluate(X_k[k], y);
       fitness[k] = y[0];
     }
-    // Select the mu best (insertion sort)
-    for (size_t k = 0; k < lambda-1; k++)
+    
+    // Select the mu best (shell sort)
+    // Shell sort : better when using greater lambda
+    int gaps[8] = {701, 301, 132, 57, 23, 10, 4, 1};
+
+    // Start with the largest gap and work down to a gap of 1
+    for (size_t g = 0; g < 8; g++)
     {
-      double y_tmp = fitness[k];
-      // X_tmp = X_k[k]
-      vectorCopy(X_k[k], X_tmp, dimension);
-      // Z_tmp = Z[k]
-      vectorCopy(Z[k], Z_tmp, dimension);
-      
-      size_t pos = k;
-      while (pos > 0 && fitness[pos-1] > y_tmp)
+      size_t gap = gaps[g];
+      // Do a gapped insertion sort for this gap size.
+      // The first gap elements fitness[0..gap-1] are already in gapped order
+      // keep adding one more element until the entire array is gap sorted
+      for (size_t k = gap; k < lambda; k += 1)
       {
-        fitness[pos] = fitness[pos-1];
-        vectorCopy(X_k[pos-1], X_k[pos], dimension);
-        vectorCopy(Z[pos-1], Z[pos], dimension);
-        pos--;
+        double y_tmp = fitness[k];
+        // X_tmp = X_k[k]
+        vectorCopy(X_k[k], X_tmp, dimension);
+        // Z_tmp = Z[k]
+        vectorCopy(Z[k], Z_tmp, dimension);
+        size_t pos = k;
+        // shift earlier gap-sorted elements up 
+        // until the correct location for fitness[k] is found
+        while(pos >= gap && fitness[pos-gap] > y_tmp)
+        {
+          fitness[pos] = fitness[pos-gap];
+          vectorCopy(X_k[pos-gap], X_k[pos], dimension);
+          vectorCopy(Z[pos-gap], Z[pos], dimension);
+          pos -= gap;
+        }
+        // Repostion f(x_k)
+        fitness[pos] = y_tmp;
+        // Reposition x_k : X_k[pos] = X_tmp
+        vectorCopy(X_tmp, X_k[pos], dimension);
+        // Reposition z_k : Z[pos] = Z_tmp
+        vectorCopy(Z_tmp, Z[pos], dimension);
       }
-      // Repostion f(x_k)
-      fitness[pos] = y_tmp;
-      // Reposition x_k : X_k[pos] = X_tmp
-      vectorCopy(X_tmp, X_k[pos], dimension);
-      // Reposition z_k : Z[pos] = Z_tmp
-      vectorCopy(Z_tmp, Z[pos], dimension);
     }
+
+    // Select the mu best (insertion sort)
+    // Better when lambda small
+    // for (size_t k = 0; k < lambda-1; k++)
+    // {
+    //   double y_tmp = fitness[k];
+    //   // X_tmp = X_k[k]
+    //   vectorCopy(X_k[k], X_tmp, dimension);
+    //   // Z_tmp = Z[k]
+    //   vectorCopy(Z[k], Z_tmp, dimension);
+    //   
+    //   size_t pos = k;
+    //   while (pos > 0 && fitness[pos-1] > y_tmp)
+    //   {
+    //     fitness[pos] = fitness[pos-1];
+    //     vectorCopy(X_k[pos-1], X_k[pos], dimension);
+    //     vectorCopy(Z[pos-1], Z[pos], dimension);
+    //     pos--;
+    //   }
+    //   // Repostion f(x_k)
+    //   fitness[pos] = y_tmp;
+    //   // Reposition x_k : X_k[pos] = X_tmp
+    //   vectorCopy(X_tmp, X_k[pos], dimension);
+    //   // Reposition z_k : Z[pos] = Z_tmp
+    //   vectorCopy(Z_tmp, Z[pos], dimension);
+    // }
 
     // update s_sigma
     for(size_t j = 0; j < dimension; j++)
