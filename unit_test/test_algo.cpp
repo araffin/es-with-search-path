@@ -168,16 +168,6 @@ void algo4(void (*evaluate)(double*, double*),
     X[j] = lower_bounds[j] + (upper_bounds[j] - lower_bounds[j])*random_uniform(gen);
   }
   
-  // initialize matrix elements
-  // for (size_t k = 0; k < lambda; k++)
-  // {
-  //   for (size_t j = 0; j < dimension; j++)
-  //   {
-  //     X_k[k][j] = lower_bounds[j] + (upper_bounds[j] - lower_bounds[j])*random_uniform(gen);
-  //   }
-  // }
-  
-  
   // double *x = coco_allocate_vector(dimension);
   double y[number_of_objectives];
 
@@ -188,27 +178,17 @@ void algo4(void (*evaluate)(double*, double*),
 
   while (!happy && counter < max_budget)
   {
-
     for (size_t k = 0; k < lambda; k++)
     {
       // z_k = N(0,I)
-      normalMatrix(Z, N, gen, lambda, dimension);
-      // printArray(X_k[k],dimension);
-
-      // temp variable to store intermediate result
-      double product_result[dimension];
-      elementProduct(Sigma, Z[k], product_result, dimension);
       // x_k = x + sigma o z_k
-      arraySum(X, product_result, X_k[k], dimension);
-
-      //check boundaries
-      for(size_t j = 0; j < dimension; j++)
-      {
+      for (size_t j = 0; j < dimension; j++) {
+        Z[k][j] = N(gen);
+        X_k[k][j] = X[j] + Sigma[j]*Z[k][j];
+        //check boundaries
         X_k[k][j] = fmax(lower_bounds[j], fmin(X_k[k][j], upper_bounds[j]));
       }
-      // printArray(X_k[k],dimension);
     }
-
 
     // Select the mu best
     for (size_t k = 0; k < lambda; k++)
@@ -241,10 +221,9 @@ void algo4(void (*evaluate)(double*, double*),
       vectorCopy(X_tmp, X_k[position], dimension);
       // Reposition z_k : Z[pos] = Z_tmp
       vectorCopy(Z_tmp, Z[position], dimension);
-
     }
 
-    // uptdate s_sigma // TO BE CHECKED => CHECKED by toni
+    // update s_sigma
     for(size_t j = 0; j < dimension; j++)
     {
       double sum = 0;  // sum = sum(zk); zk in P
@@ -252,30 +231,20 @@ void algo4(void (*evaluate)(double*, double*),
       {
         sum = sum + Z[k][j];
       }
-      std::cout << "sum " << sum << std::endl;
-      // s_sig = (1-c_sig)*s_sig + math.sqrt(c_sig*(2-c_sig))
-      // *(math.sqrt(u)/u)*(z.sum(axis=0))
-
       s_sigma[j] = (1-c_sigma)*s_sigma[j] \
                   + sqrt(c_sigma*(2 - c_sigma))*sqrt((double)mu)/double(mu) * sum; 
     }
-    // printArray(s_sigma, dimension);
 
     // update Sigma
-    // sigma = sigma * np.exp((1/d_i)*((abs(s_sig)/ E_half_normal_dis)-1))
-    // *math.exp((c_sig/d)*((np.linalg.norm(s_sig)/E_muldim_normal)-1))
-
     double exp1 = 0;
     double exp2 = exp((c_sigma/d)*((normE(s_sigma, dimension)/E_MULTIDIM_NORMAL)-1));
     // exp2 = pow(exp2, c_sigma/d);
     for(size_t j = 0; j < dimension; j++)
     {
       exp1 = exp((1./double(di))*((abs(s_sigma[j])/E_HALF_NORMAL)-1));
-      // exp1 = pow(exp1, 1./double(di));
       Sigma[j] = Sigma[j]*exp1*exp2;
     }
-    printArray(Sigma, dimension);
-
+    
     // update X
     for(size_t j = 0; j < dimension; j++)
     {
@@ -288,12 +257,8 @@ void algo4(void (*evaluate)(double*, double*),
       X[j] = fmax(lower_bounds[j], fmin(X[j], upper_bounds[j]));
     }
 
-    // utilise t-on vraiment un critère d'arrêt ?
     evaluate(X,y);
     // happy = (y[0] < stop_criterion);
-    // printArray(y,number_of_objectives);
-    // printArray(X,dimension);
-
     counter++;
   }
   evaluate(X,y);
