@@ -238,7 +238,6 @@ void algo4(void (*evaluate)(double*, double*),
     // update Sigma
     double exp1 = 0;
     double exp2 = exp((c_sigma/d)*((normE(s_sigma, dimension)/E_MULTIDIM_NORMAL)-1));
-    // exp2 = pow(exp2, c_sigma/d);
     for(size_t j = 0; j < dimension; j++)
     {
       exp1 = exp((1./double(di))*((abs(s_sigma[j])/E_HALF_NORMAL)-1));
@@ -267,7 +266,6 @@ void algo4(void (*evaluate)(double*, double*),
   // Free memory
   freeMatrix(X_k, lambda);
   freeMatrix(Z, lambda);
-  // coco_free_memory(y);
 }
 
 void poly(double* x, double* y)

@@ -1,8 +1,9 @@
 // Evolution Strategy with search path
 // as describe in https://www.lri.fr/~hansen/es-overview-2015.pdf [Algo 4]
-// Post Process : python -m bbob_pproc [-o OUTPUT_FOLDERNAME] YOURDATAFOLDER [MORE_DATAFOLDERS]
+// Post Process : python2 -m bbob_pproc [-o OUTPUT_FOLDERNAME] YOURDATAFOLDER [MORE_DATAFOLDERS]
 #include "algo4.hpp"
 #include <assert.h>
+#define PI 3.14159265359
 using namespace std;
 
 /**
@@ -52,6 +53,9 @@ void algo4(evaluate_function_t evaluate,
   // Mutation vectors
   double** Z;
   double fitness[lambda];
+  double E_HALF_NORMAL = sqrt(2./PI);
+  double _dim = double(dimension);
+  double E_MULTIDIM_NORMAL = sqrt(_dim)*(1-1./(4*_dim)+1./(21*_dim*_dim));
   // Matrix Initialization
   X_k = new double*[lambda];
   Z = new double*[lambda];
@@ -60,20 +64,17 @@ void algo4(evaluate_function_t evaluate,
     X_k[i] = new double[dimension];
     Z[i] = new double[dimension];
   }
-  // initialize matrix elements
-  for (size_t i = 0; i < lambda; i++ )
-  {
-     for (size_t j = 0; j < dimension; j++ )
-     {
-        X_k[i][j] = lower_bounds[j] + (upper_bounds[j] - lower_bounds[j])*coco_random_uniform(random_generator);
-     }
-  }
 
   // Random generator (normal distribution)
   random_device rd;
   mt19937 gen(rd()); //Mersenne Twister 19937 generator
   normal_distribution<> N(0,1);
-
+  uniform_real_distribution<double> random_uniform(0.0,1.0);
+  
+  for (size_t j = 0; j < dimension; j++)
+  {
+    X[j] = lower_bounds[j] + (upper_bounds[j] - lower_bounds[j])*random_uniform(gen);
+  }
   // a t-on besoin d'un critère d'arrêt ? Sinon on fait juste le nb d'itérations comme dans les exemples
   // double stop_criterion = 0.0002; // juste pour tester les 3 dernières lignes de la boucle
 
@@ -82,30 +83,22 @@ void algo4(evaluate_function_t evaluate,
 
   for (size_t j = 0; j < dimension ; j++)
   {
-    Sigma[j] = 1;
+    Sigma[j] = 0.1;
   }
 
   while (!happy && counter < max_budget)
   {
-
     for (size_t k = 0; k < lambda; k++)
     {
       // z_k = N(0,I)
-      normalMatrix(Z, N, gen, lambda, dimension);
-
-      // temp variable to store intermediate result
-      double product_result[dimension];
-      elementProduct(Sigma, Z[k], product_result, dimension);
       // x_k = x + sigma o z_k
-      arraySum(X, product_result, X_k[k], dimension);
-
-      //check boundaries
-      for(size_t j = 0; j < dimension; j++)
-      {
+      for (size_t j = 0; j < dimension; j++) {
+        Z[k][j] = N(gen);
+        X_k[k][j] = X[j] + Sigma[j]*Z[k][j];
+        //check boundaries
         X_k[k][j] = fmax(lower_bounds[j], fmin(X_k[k][j], upper_bounds[j]));
       }
     }
-
 
     // Select the mu best
     for (size_t k = 0; k < lambda; k++)
@@ -138,10 +131,9 @@ void algo4(evaluate_function_t evaluate,
       vectorCopy(X_tmp, X_k[position], dimension);
       // Reposition z_k : Z[pos] = Z_tmp
       vectorCopy(Z_tmp, Z[position], dimension);
-
     }
 
-    // uptdate s_sigma // TO BE CHECKED => CHECKED by toni
+    // update s_sigma
     for(size_t j = 0; j < dimension; j++)
     {
       double sum = 0;  // sum = sum(zk); zk in P
@@ -150,20 +142,17 @@ void algo4(evaluate_function_t evaluate,
         sum = sum + Z[k][j];
       }
       s_sigma[j] = (1-c_sigma)*s_sigma[j] \
-                  + sqrt(c_sigma*(2 - c_sigma)*(double)mu)/double(mu) * sum; 
+                  + sqrt(c_sigma*(2 - c_sigma))*sqrt((double)mu)/double(mu) * sum; 
     }
 
     // update Sigma
-    double exp1=0;
-    double exp2 = exp((normE(s_sigma, dimension) / (sqrt(dimension)*(1 - 1/4*dimension + 1/(21*pow(dimension, 2))))) -1);
-    exp2 = pow(exp2, c_sigma/d);
+    double exp1 = 0;
+    double exp2 = exp((c_sigma/d)*((normE(s_sigma, dimension)/E_MULTIDIM_NORMAL)-1));
     for(size_t j = 0; j < dimension; j++)
     {
-      exp1 = exp((abs(Sigma[j]) / (sqrt(2)/sqrt(coco_pi))) -1);
-      exp1 = pow(exp1, 1/di);
+      exp1 = exp((1./double(di))*((abs(s_sigma[j])/E_HALF_NORMAL)-1));
       Sigma[j] = Sigma[j]*exp1*exp2;
     }
-
 
     // update X
     for(size_t j = 0; j < dimension; j++)
@@ -174,13 +163,11 @@ void algo4(evaluate_function_t evaluate,
         sumXk = sumXk + X_k[k][j];
       }
       X[j] = (double)sumXk/(double)mu; 
-
+      X[j] = fmax(lower_bounds[j], fmin(X[j], upper_bounds[j]));
     }
 
-    // utilise t-on vraiment un critère d'arrêt ?
     evaluate(X,y);
     // happy = (y[0] < stop_criterion);
-
     counter++;
   }
   // Free memory
@@ -189,24 +176,12 @@ void algo4(evaluate_function_t evaluate,
   coco_free_memory(y);
 }
 
-
-/* Selection function
-So far I have considered that this function will classify the best member of X_k and Z at the fist positions
-ie P will be the mu first columns of X_k and Z (to avoid having new matrix) but I don't know if it is the best way
-
-*/
-
-void select_mu_best(double mu, double lambda, double** X_k, double** Z, evaluate_function_t evaluate)
-{
-
-}
-
 double normE(double *m, size_t dimension)
 {
-  double out=0;
-  for (int i=0; i<dimension; ++i)
+  double out = 0;
+  for (size_t i = 0; i < dimension; i++)
   {
-    out += pow(m[i], 2);
+    out += m[i]*m[i];
   }
   return sqrt(out);
 }

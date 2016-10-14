@@ -14,7 +14,7 @@
  * The maximal budget for evaluations done by an optimization algorithm equals dimension * BUDGET_MULTIPLIER.
  * Increase the budget multiplier value gradually to see how it affects the runtime.
  */
-static const size_t BUDGET_MULTIPLIER = 2;
+static const size_t BUDGET_MULTIPLIER = 4;
 
 /**
  * The maximal number of independent restarts allowed for an algorithm that restarts itself.
