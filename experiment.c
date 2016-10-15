@@ -14,7 +14,7 @@
  * The maximal budget for evaluations done by an optimization algorithm equals dimension * BUDGET_MULTIPLIER.
  * Increase the budget multiplier value gradually to see how it affects the runtime.
  */
-static const size_t BUDGET_MULTIPLIER = 800;
+static const size_t BUDGET_MULTIPLIER = 200;
 
 /**
  * The maximal number of independent restarts allowed for an algorithm that restarts itself.
@@ -101,12 +101,12 @@ int main(void) {
   /* Change the log level to "warning" to get less output */
   coco_set_log_level("info");
 
-  printf("Running the example experiment... (might take time, be patient)\n");
+  printf("Running the experiment... (might take time, be patient)\n");
   fflush(stdout);
 
   // example_experiment("bbob-biobj", "bbob-biobj", random_generator);
 
-  // Uncomment the line below to run the same example experiment on the bbob suite
+  // Uncomment the line below to run the experiment on the bbob suite
   example_experiment("bbob", "bbob", random_generator);
 
   printf("Done!\n");

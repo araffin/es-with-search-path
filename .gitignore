@@ -1,6 +1,6 @@
 *.x
 *.o
-exdata/
+exdata*
 ppdata/
 antonin/
 experiment

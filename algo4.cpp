@@ -7,7 +7,8 @@
 using namespace std;
 
 /**
- * A grid search optimizer that can be used for single- as well as multi-objective optimization.
+ * A ES(lambda,mu)-search-path optimizer that can be used 
+ * for single-objective optimization.
  *
  * @param evaluate The evaluation function used to evaluate the solutions.
  * @param dimension The number of variables (= n in our case)
@@ -16,10 +17,7 @@ using namespace std;
  * @param upper_bounds The upper bounds of the region of interested (a vector containing dimension values).
  * @param max_budget The maximal number of evaluations.
  *
- * If max_budget is not enough to cover even the smallest possible grid, only the first max_budget
- * nodes of the grid are evaluated.
  */
-
 void algo4(evaluate_function_t evaluate,
                     const size_t dimension,
                     const size_t number_of_objectives,
@@ -41,8 +39,11 @@ void algo4(evaluate_function_t evaluate,
   double Sigma[dimension]; // idem
   double s_sigma[dimension]; // search path --> vector !
   bool happy = false;
+  // Stop if there is no change in the value greater that stop_criterion
+  double stop_criterion = 1e-8;
+  double last_value;
   int counter = 0;
-  size_t lambda = 20;
+  size_t lambda = 200;
   size_t mu = (size_t) lambda/4;
   // Damping factors
   double d = 1 + sqrt((double)mu/(double)dimension); 
@@ -80,7 +81,10 @@ void algo4(evaluate_function_t evaluate,
 
   // double *x = coco_allocate_vector(dimension);
   double *y = coco_allocate_vector(number_of_objectives);
-
+  // Init the last value variable
+  evaluate(X,y);
+  last_value = y[0];
+  
   for (size_t j = 0; j < dimension ; j++)
   {
     Sigma[j] = 0.1;
@@ -106,31 +110,84 @@ void algo4(evaluate_function_t evaluate,
       evaluate(X_k[k], y);
       fitness[k] = y[0];
     }
-    // Select the mu best (insertion sort)
-    for (size_t k = 0; k < lambda-1; k++)
+    
+    // Select the mu best (shell sort)
+    // Shell sort : better when using greater lambda
+    int gaps[8] = {701, 301, 132, 57, 23, 10, 4, 1};
+    
+    // // Start with the largest gap and work down to a gap of 1
+    for (size_t g = 0; g < 8; g++)
     {
-      double y_tmp = fitness[k];
-      // X_tmp = X_k[k]
-      vectorCopy(X_k[k], X_tmp, dimension);
-      // Z_tmp = Z[k]
-      vectorCopy(Z[k], Z_tmp, dimension);
-      
-      size_t pos = k;
-      while (pos > 0 && fitness[pos-1] > y_tmp)
+      size_t gap = gaps[g];
+      // Do a gapped insertion sort for this gap size.
+      // The first gap elements fitness[0..gap-1] are already in gapped order
+      // keep adding one more element until the entire array is gap sorted
+      for (size_t k = gap; k < lambda; k += 1)
       {
-        fitness[pos] = fitness[pos-1];
-        vectorCopy(X_k[pos-1], X_k[pos], dimension);
-        vectorCopy(Z[pos-1], Z[pos], dimension);
-        pos--;
+        double y_tmp = fitness[k];
+        for (size_t j = 0; j < dimension; j++)
+        {
+          X_tmp[j] = X_k[k][j];
+          Z_tmp[j] = Z[k][j];
+        }
+        size_t pos = k;
+        // shift earlier gap-sorted elements up 
+        // until the correct location for fitness[k] is found
+        while(pos >= gap && fitness[pos-gap] > y_tmp)
+        {
+          fitness[pos] = fitness[pos-gap];
+          for (size_t j = 0; j < dimension; j++)
+          {
+            X_k[pos][j] = X_k[pos-gap][j];
+            Z[pos][j] = Z[pos-gap][j];
+          }
+          pos -= gap;
+        }
+        // Reposition f(x_k)
+        fitness[pos] = y_tmp;
+        for (size_t j = 0; j < dimension; j++)
+        {
+          // Reposition x_k : X_k[pos] = X_tmp
+          X_k[pos][j] = X_tmp[j];
+          // Reposition z_k : Z[pos] = Z_tmp
+          Z[pos][j] = Z_tmp[j];
+        }
       }
-      // Repostion f(x_k)
-      fitness[pos] = y_tmp;
-      // Reposition x_k : X_k[pos] = X_tmp
-      vectorCopy(X_tmp, X_k[pos], dimension);
-      // Reposition z_k : Z[pos] = Z_tmp
-      vectorCopy(Z_tmp, Z[pos], dimension);
     }
 
+    // Select the mu best (insertion sort)
+    // Better when lambda small
+    // for (size_t k = 0; k < lambda-1; k++)
+    // {
+    //   double y_tmp = fitness[k];
+    //   for (size_t j = 0; j < dimension; j++)
+    //   {
+    //     X_tmp[j] = X_k[k][j];
+    //     Z_tmp[j] = Z[k][j];
+    //   }
+    //   
+    //   size_t pos = k;
+    //   while (pos > 0 && fitness[pos-1] > y_tmp)
+    //   {
+    //     fitness[pos] = fitness[pos-1];
+    //     for (size_t j = 0; j < dimension; j++)
+    //     {
+    //       X_k[pos][j] = X_k[pos-1][j];
+    //       Z[pos][j] = Z[pos-1][j];
+    //     }
+    //     pos--;
+    //   }
+    //   // Reposition f(x_k)
+    //   fitness[pos] = y_tmp;
+    //   for (size_t j = 0; j < dimension; j++)
+    //   {
+    //     // Reposition x_k : X_k[pos] = X_tmp
+    //     X_k[pos][j] = X_tmp[j];
+    //     // Reposition z_k : Z[pos] = Z_tmp
+    //     Z[pos][j] = Z_tmp[j];
+    //   }
+    // }
+    
     // update s_sigma
     for(size_t j = 0; j < dimension; j++)
     {
@@ -165,7 +222,8 @@ void algo4(evaluate_function_t evaluate,
     }
 
     evaluate(X,y);
-    // happy = (y[0] < stop_criterion);
+    happy = (abs(last_value - y[0]) < stop_criterion);
+    last_value = y[0];
     counter++;
   }
   // Free memory

@@ -55,20 +55,6 @@ void freeMatrix(double** mat, size_t nb_rows)
   delete mat;
 }
 
-
-// void quicksort(vector<int>& vec, int st, int end) {
-//   if(st == end) return;
-// 
-//   int sep = st;
-//   for(int i = st + 1; i < end; i++) {
-//     if(vec[i] < vec[st]) swap(vec[++sep], vec[i]);
-//   }
-// 
-//   swap(vec[st], vec[sep]);
-//   quicksort(vec, st, sep);
-//   quicksort(vec, sep + 1, end);
-// }
-
 void quickSort(double* fitness, double** X_k, double** Z,\
               size_t left, size_t right, size_t dimension)
 {
@@ -175,6 +161,8 @@ void algo4(void (*evaluate)(double*, double*),
   double Sigma[dimension]; // idem
   double s_sigma[dimension]; // search path --> vector !
   bool happy = false;
+  double stop_criterion = 1e-8;
+  double last_value;
   int counter = 0;
   size_t lambda = 50;
   size_t mu = (size_t) lambda/4;
@@ -186,8 +174,6 @@ void algo4(void (*evaluate)(double*, double*),
   double** X_k;
   // Mutation vectors
   double** Z;
-  double** X_k_tmp;
-  double** Z_k_tmp;
   double fitness[lambda];
   double E_HALF_NORMAL = sqrt(2./PI);
   double _dim = double(dimension);
@@ -195,14 +181,11 @@ void algo4(void (*evaluate)(double*, double*),
   // Matrix Initialization
   X_k = new double*[lambda];
   Z = new double*[lambda];
-  Z_k_tmp = new double*[lambda];
-  X_k_tmp = new double*[lambda];
+
   for (size_t k = 0; k < lambda; k++)
   {
     X_k[k] = new double[dimension];
     Z[k] = new double[dimension];
-    Z_k_tmp[k] = new double[dimension];
-    X_k_tmp[k] = new double[dimension];
   }
 
   // Random generator (normal distribution)
@@ -215,9 +198,9 @@ void algo4(void (*evaluate)(double*, double*),
   {
     X[j] = lower_bounds[j] + (upper_bounds[j] - lower_bounds[j])*random_uniform(gen);
   }
-  
-  // double *x = coco_allocate_vector(dimension);
   double y[number_of_objectives];
+  evaluate(X,y);
+  last_value = y[0];
 
   for (size_t j = 0; j < dimension ; j++)
   {
@@ -230,7 +213,8 @@ void algo4(void (*evaluate)(double*, double*),
     {
       // z_k = N(0,I)
       // x_k = x + sigma o z_k
-      for (size_t j = 0; j < dimension; j++) {
+      for (size_t j = 0; j < dimension; j++)
+      {
         Z[k][j] = N(gen);
         X_k[k][j] = X[j] + Sigma[j]*Z[k][j];
         //check boundaries
@@ -238,38 +222,20 @@ void algo4(void (*evaluate)(double*, double*),
       }
     }
     
-    size_t indices[lambda];
     // Evaluate the solutions
     for (size_t k = 0; k < lambda; k++)
     {
       evaluate(X_k[k], y);
       fitness[k] = y[0];
-      indices[k] = k;
-      for (size_t j = 0; j < dimension; j++)
-      {
-        X_k_tmp[k][j] = X_k[k][j];
-        Z_k_tmp[k][j] = Z[k][j];
-      }
     }
     
     // quickSort(fitness, X_k, Z, 0, lambda-1, dimension);
-    quickSort(fitness, indices, 0, lambda-1);
-    
-    for (size_t k = 0; k < mu; k++)
-    {
-      size_t idx = indices[k];
-      for (size_t j = 0; j < dimension; j++)
-      {
-        X_k[k][j] = X_k_tmp[idx][j];
-        Z[k][j] = Z_k_tmp[idx][j];
-      }
-    }
     
     // Select the mu best (shell sort)
     // Shell sort : better when using greater lambda
     // int gaps[8] = {701, 301, 132, 57, 23, 10, 4, 1};
     // 
-    // // Start with the largest gap and work down to a gap of 1
+    // // // Start with the largest gap and work down to a gap of 1
     // for (size_t g = 0; g < 8; g++)
     // {
     //   size_t gap = gaps[g];
@@ -311,36 +277,36 @@ void algo4(void (*evaluate)(double*, double*),
 
     // Select the mu best (insertion sort)
     // Better when lambda small
-    // for (size_t k = 0; k < lambda-1; k++)
-    // {
-    //   double y_tmp = fitness[k];
-    //   for (size_t j = 0; j < dimension; j++)
-    //   {
-    //     X_tmp[j] = X_k[k][j];
-    //     Z_tmp[j] = Z[k][j];
-    //   }
-    //   
-    //   size_t pos = k;
-    //   while (pos > 0 && fitness[pos-1] > y_tmp)
-    //   {
-    //     fitness[pos] = fitness[pos-1];
-    //     for (size_t j = 0; j < dimension; j++)
-    //     {
-    //       X_k[pos][j] = X_k[pos-1][j];
-    //       Z[pos][j] = Z[pos-1][j];
-    //     }
-    //     pos--;
-    //   }
-    //   // Reposition f(x_k)
-    //   fitness[pos] = y_tmp;
-    //   for (size_t j = 0; j < dimension; j++)
-    //   {
-    //     // Reposition x_k : X_k[pos] = X_tmp
-    //     X_k[pos][j] = X_tmp[j];
-    //     // Reposition z_k : Z[pos] = Z_tmp
-    //     Z[pos][j] = Z_tmp[j];
-    //   }
-    // }
+    for (size_t k = 0; k < lambda-1; k++)
+    {
+      double y_tmp = fitness[k];
+      for (size_t j = 0; j < dimension; j++)
+      {
+        X_tmp[j] = X_k[k][j];
+        Z_tmp[j] = Z[k][j];
+      }
+      
+      size_t pos = k;
+      while (pos > 0 && fitness[pos-1] > y_tmp)
+      {
+        fitness[pos] = fitness[pos-1];
+        for (size_t j = 0; j < dimension; j++)
+        {
+          X_k[pos][j] = X_k[pos-1][j];
+          Z[pos][j] = Z[pos-1][j];
+        }
+        pos--;
+      }
+      // Reposition f(x_k)
+      fitness[pos] = y_tmp;
+      for (size_t j = 0; j < dimension; j++)
+      {
+        // Reposition x_k : X_k[pos] = X_tmp
+        X_k[pos][j] = X_tmp[j];
+        // Reposition z_k : Z[pos] = Z_tmp
+        Z[pos][j] = Z_tmp[j];
+      }
+    }
 
     // update s_sigma
     for(size_t j = 0; j < dimension; j++)
@@ -376,7 +342,8 @@ void algo4(void (*evaluate)(double*, double*),
     }
 
     evaluate(X,y);
-    // happy = (y[0] < stop_criterion);
+    happy = (abs(last_value - y[0]) < stop_criterion);
+    last_value = y[0];
     counter++;
   }
   evaluate(X,y);
@@ -387,8 +354,6 @@ void algo4(void (*evaluate)(double*, double*),
   // Free memory
   freeMatrix(X_k, lambda);
   freeMatrix(Z, lambda);
-  freeMatrix(X_k_tmp, lambda);
-  freeMatrix(Z_k_tmp, lambda);
 }
 
 void poly(double* x, double* y)
