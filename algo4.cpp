@@ -4,6 +4,7 @@
 #include "algo4.hpp"
 #include <assert.h>
 #define PI 3.14159265359
+#define EVAL_CRIT 10
 using namespace std;
 
 /**
@@ -40,10 +41,10 @@ void algo4(evaluate_function_t evaluate,
   double s_sigma[dimension]; // search path --> vector !
   bool happy = false;
   // Stop if there is no change in the value greater that stop_criterion
-  double stop_criterion = 1e-8;
-  double last_value;
+  double stop_criterion = 1e-9;
+
   int counter = 0;
-  size_t lambda = 200;
+  size_t lambda = 100;
   size_t mu = (size_t) lambda/4;
   // Damping factors
   double d = 1 + sqrt((double)mu/(double)dimension); 
@@ -57,6 +58,10 @@ void algo4(evaluate_function_t evaluate,
   double E_HALF_NORMAL = sqrt(2./PI);
   double _dim = double(dimension);
   double E_MULTIDIM_NORMAL = sqrt(_dim)*(1-1./(4*_dim)+1./(21*_dim*_dim));
+
+  uint criterion_compteur=0;
+  double last_evaluations[EVAL_CRIT];
+
   // Matrix Initialization
   X_k = new double*[lambda];
   Z = new double*[lambda];
@@ -83,7 +88,6 @@ void algo4(evaluate_function_t evaluate,
   double *y = coco_allocate_vector(number_of_objectives);
   // Init the last value variable
   evaluate(X,y);
-  last_value = y[0];
   
   for (size_t j = 0; j < dimension ; j++)
   {
@@ -222,10 +226,25 @@ void algo4(evaluate_function_t evaluate,
     }
 
     evaluate(X,y);
-    happy = (abs(last_value - y[0]) < stop_criterion);
-    last_value = y[0];
+    last_evaluations[criterion_compteur] = y[0];
+    criterion_compteur++;
+    criterion_compteur = criterion_compteur % EVAL_CRIT;
+    double min_eval, max_eval;
+    if (counter >= 10)
+    {
+      min_eval = last_evaluations[0];
+      max_eval = last_evaluations[0];
+      for (size_t i=1; i<EVAL_CRIT; ++i)
+      {
+        min_eval = fmin(min_eval, last_evaluations[i]);
+        max_eval = fmax(max_eval, last_evaluations[i]);
+      }
+      happy = ((max_eval - min_eval) < stop_criterion);
+    }
+
     counter++;
   }
+
   // Free memory
   freeMatrix(X_k, lambda);
   freeMatrix(Z, lambda);
