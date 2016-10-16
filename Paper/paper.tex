@@ -1,0 +1,127 @@
+%http://www.ieee.org/conferences_events/conferences/publishing/templates.html
+
+\documentclass[transmag]{IEEEtran}
+
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{bm}  
+
+\usepackage{multirow}
+
+\ifCLASSOPTIONcompsoc
+  \usepackage[nocompress]{cite}
+\else
+  \usepackage{cite}
+\fi
+
+\ifCLASSOPTIONcompsoc
+\usepackage[caption=false,font=normalsize,labelfon
+t=sf,textfont=sf]{subfig}
+\else
+\usepackage[caption=false,font=footnotesize]{subfi
+g}
+\fi
+
+\usepackage{xcolor}
+\usepackage{etoolbox}
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+
+\hyphenation{}
+
+
+\begin{document}
+\title{$(\mu/\mu,\lambda)-ES$ with Search Path}
+
+
+\author{\IEEEauthorblockN{Florence Carton}
+\IEEEauthorblockA{ENSTA ParisTech}
+\and
+\IEEEauthorblockN{Alvaro Correia}
+\IEEEauthorblockA{ENSTA ParisTech}
+\and
+\IEEEauthorblockN{Gabirel Quéré}
+\IEEEauthorblockA{ENSTA ParisTech}
+\and
+\IEEEauthorblockN{Antonin Raffin}
+\IEEEauthorblockA{ENSTA ParisTech}}
+
+
+\maketitle
+
+\begin{abstract}
+
+\end{abstract}
+
+\IEEEpeerreviewmaketitle
+
+
+\section{Introduction}
+
+
+The main goal of our work was to implement the algorithm $(\mu/\mu,\lambda)-ES$  with Search Path presented in the paper \cite{algo}. To test and compare our algorithm with other implementations, we used the COCO plateform \cite{coco}. 
+
+In the next section, we introduce the algorithm as it is written in the corresponding paper, then we explain how we implemented it and which results we obtained. 
+
+\section{The algorithm}
+
+The algorithm we implemented is the following : 
+
+\begin{algorithm}
+\begin{algorithmic}[1]
+\State \textbf{given} $n \in \mathbb{N}$, $\lambda \in \mathbb{N}$, $\mu \approx \lambda/4 \in \mathbb{N}$,  $c_{\sigma} \approx \sqrt{\mu /(n+\mu)}$, $ d \approx 1 + \sqrt{\mu/n}$, $d_i \approx 3n$
+\State \textbf{initialize} $\bm{x} \in \mathbb{R}^n $, $\bm{\sigma} \in \mathbb{R}^n _+ $, $\bm{s_{\sigma}} =\bm{0}$
+\While{not happy}
+	\For{$ k \in \{1, ..., \lambda\} $}
+    	\State $\bm{z_k} = \mathcal{N}(\bm{0}, \bm{I})$  iid for each k
+    	\State $ \bm{x_k} = \bm{x} + \bm{\sigma} \circ \bm{z_k}$
+	\EndFor
+    \State $\mathcal{P} \leftarrow sel\_\mu\_best(\{\bm{x_k}, \bm{z_k}, f(\bm{x_k})|1\leq k \leq \lambda \})$ recombination and parent update
+    \State $\bm{s_{\sigma}} \leftarrow (1 - c_{\sigma})\bm{s_{\sigma}} + \sqrt{c_{\sigma}(2-c_{\sigma})}\frac{\sqrt{\mu}}{\mu}\sum_{\bm{z_k}\in \mathcal{P}}\bm{z_k} $
+    \State $\bm{\sigma} \leftarrow \bm{\sigma} \circ exp^{1/d_i}(\frac{|\bm{s_{\sigma}}|}{\mathbb{E}|\mathcal{N}(0,1)|}-\bm{1}) \times exp^{c_{\sigma}/d}(\frac{||\bm{s_{\sigma}}||}{\mathbb{E}||\mathcal{N}(\bm{0},\bm{1})||}-1) $
+    \State $ \bm{x} = \sum_{x_k \in \mathcal{P}} x_k$
+\EndWhile
+\end{algorithmic}
+ \caption{The $(\mu / \mu, \lambda$ - ES with Search Path}
+\end{algorithm}
+
+In this algorithm, $f$ in the function we want to minimize, $\bm{x}$ its parameter, and $n$ the dimension of $\bm{x}$. $\lambda$ is the number of offsprings and $\mu$ is the number of parents. Therefore the selection function will select the $\mu$ best in the offspring population. The $x_k$ are the offsprings, $s_{\sigma}$ is the search path, $z_k$ are the mutation steps and $\sigma$ the mutation vectors. 
+
+
+\section{Our implementation}
+
+\subsection{Implementation of the algorithm}
+
+We implemented this algorithm in C/C++, and in this section we present how we implemented it and which choices we made. 
+
+Regarding the initialisation, the vector $\bm{x}$ is initialized randomly with a uniform distribution and every element of the vector $\bm{\sigma}$ is initialized to $0.1$. 
+
+In the while loop, two stop criterion can be found in our implementation. The first one is the budget, i.e. the number of iterations, and the second one is the 'happy' criterion : the programme will stop if there is no change between two iterations bigger that $10^{-8}$ .
+
+
+\subsection{Tuning the hyperparameters}
+ 
+
+\section{Analysis of the results}
+
+To analyse the results, we launched our algorithm on the COCO plateform : \cite{coco}. The COCO (COmparing Continuous Optimizers) plateform provides benchmarks for comparison between optimizing algorithm, and visualizing tools to plot the data.
+
+
+\section{Conclusion}
+
+
+\section{Bibliography}
+
+\input{biblio2}
+
+\end{document}
+
+
