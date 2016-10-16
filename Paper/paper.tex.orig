@@ -130,8 +130,12 @@ In this algorithm, $f$ in the function we want to minimize, $\bm{x}$ its paramet
 \section{Our implementation}
 
 \subsection{Implementation of the algorithm}
+<<<<<<< HEAD
+We implemented this algorithm in C/C++, and in this section we present how we implemented it and which choices we made. 
+=======
 
 We implemented this algorithm in \CPP, and in this section we present how we implemented it and which choices we made. 
+>>>>>>> d0d1396223a8d144c1ca0acf9312782af502e8bf
 
 \subsubsection{Initialization}
 
