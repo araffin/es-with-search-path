@@ -4,7 +4,7 @@
 #include "algo4.hpp"
 #include <assert.h>
 #define PI 3.14159265359
-#define EVAL_CRIT 10
+#define EVAL_CRIT 10 // The number of step we look to decide if we are stuck
 using namespace std;
 
 /**
@@ -59,7 +59,7 @@ void algo4(evaluate_function_t evaluate,
   double _dim = double(dimension);
   double E_MULTIDIM_NORMAL = sqrt(_dim)*(1-1./(4*_dim)+1./(21*_dim*_dim));
 
-  uint criterion_compteur=0;
+  uint criterion_counter = 0;
   double last_evaluations[EVAL_CRIT];
 
   // Matrix Initialization
@@ -77,22 +77,17 @@ void algo4(evaluate_function_t evaluate,
   normal_distribution<> N(0,1);
   uniform_real_distribution<double> random_uniform(0.0,1.0);
   
+  // Init Solution and Sigma (step size)
   for (size_t j = 0; j < dimension; j++)
   {
-    X[j] = lower_bounds[j] + (upper_bounds[j] - lower_bounds[j])*random_uniform(gen);
+    X[j] = lower_bounds[j] + (upper_bounds[j] - lower_bounds[j]) / 2.0;
+    /* Based on the +/-3sigma rule to obtain a 99.7% CI (cf cma-es.c code)*/
+    Sigma[j] = (upper_bounds[j] - lower_bounds[j]) / 6.0;
   }
-  // a t-on besoin d'un critère d'arrêt ? Sinon on fait juste le nb d'itérations comme dans les exemples
-  // double stop_criterion = 0.0002; // juste pour tester les 3 dernières lignes de la boucle
-
   // double *x = coco_allocate_vector(dimension);
   double *y = coco_allocate_vector(number_of_objectives);
   // Init the last value variable
   evaluate(X,y);
-  
-  for (size_t j = 0; j < dimension ; j++)
-  {
-    Sigma[j] = 0.1;
-  }
 
   while (!happy && counter < max_budget)
   {
@@ -226,15 +221,15 @@ void algo4(evaluate_function_t evaluate,
     }
 
     evaluate(X,y);
-    last_evaluations[criterion_compteur] = y[0];
-    criterion_compteur++;
-    criterion_compteur = criterion_compteur % EVAL_CRIT;
-    double min_eval, max_eval;
-    if (counter >= 10)
+    // Check if we are still optimising the solution
+    // Stop if we are stuck
+    last_evaluations[criterion_counter] = y[0];
+    criterion_counter = (criterion_counter + 1) % EVAL_CRIT;
+    if (counter >= EVAL_CRIT)
     {
-      min_eval = last_evaluations[0];
-      max_eval = last_evaluations[0];
-      for (size_t i=1; i<EVAL_CRIT; ++i)
+      double min_eval = last_evaluations[0];
+      double max_eval = last_evaluations[0];
+      for (size_t i = 1; i < EVAL_CRIT; i++)
       {
         min_eval = fmin(min_eval, last_evaluations[i]);
         max_eval = fmax(max_eval, last_evaluations[i]);
