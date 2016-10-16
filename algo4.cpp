@@ -40,10 +40,10 @@ void algo4(evaluate_function_t evaluate,
   double s_sigma[dimension]; // search path --> vector !
   bool happy = false;
   // Stop if there is no change in the value greater that stop_criterion
-  double stop_criterion = 1e-8;
+  double stop_criterion = 1e-9;
   double last_value;
   int counter = 0;
-  size_t lambda = 200;
+  size_t lambda = 40;
   size_t mu = (size_t) lambda/4;
   // Damping factors
   double d = 1 + sqrt((double)mu/(double)dimension); 
@@ -74,21 +74,15 @@ void algo4(evaluate_function_t evaluate,
   
   for (size_t j = 0; j < dimension; j++)
   {
-    X[j] = lower_bounds[j] + (upper_bounds[j] - lower_bounds[j])*random_uniform(gen);
+    X[j] = lower_bounds[j] + (upper_bounds[j] - lower_bounds[j]) / 2.0;
+    /* Based on the +/-3sigma rule to obtain a 99.7% CI (cf cma-es.c code)*/
+    Sigma[j] = (upper_bounds[j] - lower_bounds[j]) / 6.0;
   }
-  // a t-on besoin d'un critère d'arrêt ? Sinon on fait juste le nb d'itérations comme dans les exemples
-  // double stop_criterion = 0.0002; // juste pour tester les 3 dernières lignes de la boucle
-
   // double *x = coco_allocate_vector(dimension);
   double *y = coco_allocate_vector(number_of_objectives);
   // Init the last value variable
   evaluate(X,y);
   last_value = y[0];
-  
-  for (size_t j = 0; j < dimension ; j++)
-  {
-    Sigma[j] = 0.1;
-  }
 
   while (!happy && counter < max_budget)
   {
