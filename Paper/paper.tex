@@ -28,34 +28,35 @@ t=sf,textfont=sf]{subfig}
 g}
 \fi
 
+\IEEEoverridecommandlockouts                              % This command is only needed if
+                                                          % you want to use the \thanks command
+
 \usepackage{xcolor}
 \usepackage{etoolbox}
 
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 
+\newcommand{\todo}[1]{{\color{red}TODO: {#1}}}
+\newcommand{\comment}[1]{{\color{blue}COMMENT: {#1}}}
+\def\CPP{C\texttt{++}}
 
 \hyphenation{}
 
 
 \begin{document}
-\title{$(\mu/\mu,\lambda)-ES$ with Search Path}
+\title{$(\mu/\mu,\lambda)-ES$ with Search Path in \CPP}
 
 
-\author{\IEEEauthorblockN{Florence Carton}
-\IEEEauthorblockA{ENSTA ParisTech}
-\and
-\IEEEauthorblockN{Alvaro Correia}
-\IEEEauthorblockA{ENSTA ParisTech}
-\and
-\IEEEauthorblockN{Gabirel Quéré}
-\IEEEauthorblockA{ENSTA ParisTech}
-\and
-\IEEEauthorblockN{Antonin Raffin}
-\IEEEauthorblockA{ENSTA ParisTech}}
+\author{%
+Florence Carton$^{1}$, Alvaro Correia$^{1}$, Gabirel Quéré$^{1}$ and Antonin Raffin$^{1}$%
+
+\thanks{$^{1}$ \'Ecole Nationale Sup\'erieure de Techniques Avanc\'ees (ENSTA-ParisTech), Paris, France}%
+}
 
 
 \maketitle
+
 
 \begin{abstract}
 
@@ -90,7 +91,7 @@ The algorithm we implemented is the following :
     \State $ \bm{x} = \sum_{x_k \in \mathcal{P}} x_k$
 \EndWhile
 \end{algorithmic}
- \caption{The $(\mu / \mu, \lambda$ - ES with Search Path}
+ \caption{The $(\mu / \mu, \lambda)$ - ES with Search Path}
 \end{algorithm}
 
 In this algorithm, $f$ in the function we want to minimize, $\bm{x}$ its parameter, and $n$ the dimension of $\bm{x}$. $\lambda$ is the number of offsprings and $\mu$ is the number of parents. Therefore the selection function will select the $\mu$ best in the offspring population. The $x_k$ are the offsprings, $s_{\sigma}$ is the search path, $z_k$ are the mutation steps and $\sigma$ the mutation vectors. 
@@ -100,7 +101,7 @@ In this algorithm, $f$ in the function we want to minimize, $\bm{x}$ its paramet
 
 \subsection{Implementation of the algorithm}
 
-We implemented this algorithm in C/C++, and in this section we present how we implemented it and which choices we made. 
+We implemented this algorithm in \CPP, and in this section we present how we implemented it and which choices we made. 
 
 Regarding the initialisation, the vector $\bm{x}$ is initialized randomly with a uniform distribution and every element of the vector $\bm{\sigma}$ is initialized to $0.1$. 
 
