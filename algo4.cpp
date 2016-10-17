@@ -83,7 +83,7 @@ void algo4(evaluate_function_t evaluate,
   for (size_t j = 0; j < dimension; j++)
   {
     X[j] = lower_bounds[j] + (upper_bounds[j] - lower_bounds[j]) / 2.0;
-    // Based on the +/-3sigma rule to obtain a 99.7% CI (cf cma-es.c code)
+    // Based on the +/-3sigma rule to obtain a 99.7% confidence interval (cf cma-es.c code)
     Sigma[j] = (upper_bounds[j] - lower_bounds[j]) / 6.0;
   }
 
