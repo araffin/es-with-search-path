@@ -43,7 +43,7 @@ void algo4(evaluate_function_t evaluate,
   // Stop if there is no change in the value greater that stop_criterion
   double stop_criterion = 1e-9;
 
-  int counter = 0;
+  int counter = 1;
   size_t lambda = 8 + int(3*log10(dimension));
   // size_t mu = (size_t) lambda/2;
   // size_t lambda = 20;
@@ -89,9 +89,7 @@ void algo4(evaluate_function_t evaluate,
   // double *x = coco_allocate_vector(dimension);
   double *y = coco_allocate_vector(number_of_objectives);
   // Init the last value variable
-  // evaluate(X,y);
-  evaluateAndCount(evaluate, &counter, X, y);
-
+  evaluate(X,y);
 
   while (!happy && counter < max_budget)
   {
@@ -110,8 +108,7 @@ void algo4(evaluate_function_t evaluate,
     // Evaluate the solutions
     for (size_t k = 0; k < lambda; k++)
     {
-      // evaluate(X_k[k], y);
-      evaluateAndCount(evaluate, &counter, X_k[k], y);
+      evaluate(X_k[k], y);
       fitness[k] = y[0];
     }
     
@@ -225,8 +222,7 @@ void algo4(evaluate_function_t evaluate,
       X[j] = fmax(lower_bounds[j], fmin(X[j], upper_bounds[j]));
     }
 
-    // evaluate(X,y);
-    evaluateAndCount(evaluate, &counter, X, y);
+    evaluate(X,y);
     // Check if we are still optimising the solution
     // Stop if we are stuck
     last_evaluations[criterion_counter] = y[0];
@@ -243,7 +239,7 @@ void algo4(evaluate_function_t evaluate,
       happy = ((max_eval - min_eval) < stop_criterion);
     }
 
-    counter++;
+    counter += int(lambda) + 1;
   }
   if (happy) {
     std::cerr << "Happy (early stop) : " << counter <<"/"<< max_budget << std::endl;
@@ -256,12 +252,6 @@ void algo4(evaluate_function_t evaluate,
   freeMatrix(X_k, lambda);
   freeMatrix(Z, lambda);
   coco_free_memory(y);
-}
-
-inline void evaluateAndCount(evaluate_function_t f, size_t *counter, double* X, double* y)
-{
-  f(X,y);
-  *counter++;
 }
 
 double normE(double *m, size_t dimension)
