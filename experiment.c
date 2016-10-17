@@ -14,7 +14,7 @@
  * The maximal budget for evaluations done by an optimization algorithm equals dimension * BUDGET_MULTIPLIER.
  * Increase the budget multiplier value gradually to see how it affects the runtime.
  */
-static const size_t BUDGET_MULTIPLIER = 500;
+static const size_t BUDGET_MULTIPLIER = 30000;
 
 /**
  * The maximal number of independent restarts allowed for an algorithm that restarts itself.
@@ -178,9 +178,8 @@ void example_experiment(const char *suite_name,
           (size_t) evaluations_remaining, 
           random_generator);
           
-        size_t e_done = coco_problem_get_evaluations(PROBLEM);
-
-        printf("%d/%d\n", e_done, evaluations_remaining);
+          //size_t e_done = coco_problem_get_evaluations(PROBLEM);
+          // printf("%d/%d\n", e_done, evaluations_remaining);
           /* Break the loop if the algorithm performed no evaluations or an unexpected thing happened */
           if (coco_problem_get_evaluations(PROBLEM) == evaluations_done) {
             printf("WARNING: Budget has not been exhausted (%lu/%lu evaluations done)!\n",

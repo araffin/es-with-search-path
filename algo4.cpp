@@ -208,6 +208,7 @@ void algo4(evaluate_function_t evaluate,
 
     counter += int(lambda) + 1;
   }
+#if 0
   if (happy) {
     std::cerr << "Happy (early stop) : " << counter <<"/"<< max_budget << std::endl;
   }
@@ -215,6 +216,8 @@ void algo4(evaluate_function_t evaluate,
   {
     std::cerr << "All the budget : " << counter <<"/"<< max_budget << std::endl;
   }
+#endif
+  
   // Free memory
   freeMatrix(X_k, lambda);
   freeMatrix(Z, lambda);
