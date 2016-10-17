@@ -8,7 +8,6 @@
  * second argument the vector to which the evaluation result is stored.
  */
 typedef void (*evaluate_function_t)(const double *x, double *y);
-void evaluateAndCount(evaluate_function_t f, size_t& counter, double* X, double* y);
 
 void algo4(evaluate_function_t evaluate,
                     const size_t dimension,
