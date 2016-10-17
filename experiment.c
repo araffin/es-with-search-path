@@ -14,7 +14,7 @@
  * The maximal budget for evaluations done by an optimization algorithm equals dimension * BUDGET_MULTIPLIER.
  * Increase the budget multiplier value gradually to see how it affects the runtime.
  */
-static const size_t BUDGET_MULTIPLIER = 1000;
+static const size_t BUDGET_MULTIPLIER = 500;
 
 /**
  * The maximal number of independent restarts allowed for an algorithm that restarts itself.
@@ -138,9 +138,9 @@ void example_experiment(const char *suite_name,
 
   /* Set some options for the observer. See documentation for other options. */
   char *observer_options =
-      coco_strdupf("result_folder: RS_on_%s "
+      coco_strdupf("result_folder: RS_on_%s_%d "
                    "algorithm_name: RS "
-                   "algorithm_info: \"A simple random search algorithm\"", suite_name);
+                   "algorithm_info: \"A simple random search algorithm\"", suite_name, BUDGET_MULTIPLIER);
 
   /* Initialize the suite and observer */
   suite = coco_suite(suite_name, "year: 2016", "dimensions: 2,3,5,10,20,40");
@@ -155,37 +155,45 @@ void example_experiment(const char *suite_name,
 
     size_t dimension = coco_problem_get_dimension(PROBLEM);
 
-    /* Run the algorithm at least once */
-    for (run = 1; run <= 1 + INDEPENDENT_RESTARTS; run++) {
-
-      size_t evaluations_done = coco_problem_get_evaluations(PROBLEM);
-      long evaluations_remaining = (long) (dimension * BUDGET_MULTIPLIER) - (long) evaluations_done;
-
-      /* Break the loop if the target was hit or there are no more remaining evaluations */
-      if (coco_problem_final_target_hit(PROBLEM) || (evaluations_remaining <= 0))
+    if (dimension >= 20) {
+      printf("Skipping problem for d >= 20\n");
+    }
+    else{
+      /* Run the algorithm at least once */
+      for (run = 1; run <= 1 + INDEPENDENT_RESTARTS; run++) {
+        
+        size_t evaluations_done = coco_problem_get_evaluations(PROBLEM);
+        long evaluations_remaining = (long) (dimension * BUDGET_MULTIPLIER) - (long) evaluations_done;
+        
+        /* Break the loop if the target was hit or there are no more remaining evaluations */
+        if (coco_problem_final_target_hit(PROBLEM) || (evaluations_remaining <= 0))
         break;
+        
+        /* Call the optimization algorithm for the remaining number of evaluations */
+        algo4(evaluate_function,
+          dimension,
+          coco_problem_get_number_of_objectives(PROBLEM),
+          coco_problem_get_smallest_values_of_interest(PROBLEM),
+          coco_problem_get_largest_values_of_interest(PROBLEM),
+          (size_t) evaluations_remaining, 
+          random_generator);
+          
+        size_t e_done = coco_problem_get_evaluations(PROBLEM);
 
-      /* Call the optimization algorithm for the remaining number of evaluations */
-      algo4(evaluate_function,
-        dimension,
-        coco_problem_get_number_of_objectives(PROBLEM),
-        coco_problem_get_smallest_values_of_interest(PROBLEM),
-        coco_problem_get_largest_values_of_interest(PROBLEM),
-        (size_t) evaluations_remaining, 
-        random_generator);
-
-      /* Break the loop if the algorithm performed no evaluations or an unexpected thing happened */
-      if (coco_problem_get_evaluations(PROBLEM) == evaluations_done) {
-        printf("WARNING: Budget has not been exhausted (%lu/%lu evaluations done)!\n",
-        		(unsigned long) evaluations_done, (unsigned long) dimension * BUDGET_MULTIPLIER);
-        break;
-      }
-      else if (coco_problem_get_evaluations(PROBLEM) < evaluations_done)
-        coco_error("Something unexpected happened - function evaluations were decreased!");
+        printf("%d/%d\n", e_done, evaluations_remaining);
+          /* Break the loop if the algorithm performed no evaluations or an unexpected thing happened */
+          if (coco_problem_get_evaluations(PROBLEM) == evaluations_done) {
+            printf("WARNING: Budget has not been exhausted (%lu/%lu evaluations done)!\n",
+            (unsigned long) evaluations_done, (unsigned long) dimension * BUDGET_MULTIPLIER);
+            break;
+          }
+          else if (coco_problem_get_evaluations(PROBLEM) < evaluations_done)
+          coco_error("Something unexpected happened - function evaluations were decreased!");
+        }
+        /* Keep track of time */
+        timing_data_time_problem(timing_data, PROBLEM);      
     }
 
-    /* Keep track of time */
-    timing_data_time_problem(timing_data, PROBLEM);
   }
 
   /* Output and finalize the timing data */

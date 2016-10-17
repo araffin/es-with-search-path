@@ -4,7 +4,7 @@
 #include "algo4.hpp"
 #include <assert.h>
 #define PI 3.14159265359
-#define EVAL_CRIT 10 // The number of step we look to decide if we are stuck
+#define EVAL_CRIT 2 // The number of step we look to decide if we are stuck
 using namespace std;
 
 /**
@@ -89,7 +89,9 @@ void algo4(evaluate_function_t evaluate,
   // double *x = coco_allocate_vector(dimension);
   double *y = coco_allocate_vector(number_of_objectives);
   // Init the last value variable
-  evaluate(X,y);
+  // evaluate(X,y);
+  evaluateAndCount(evaluate, &counter, X, y);
+
 
   while (!happy && counter < max_budget)
   {
@@ -108,7 +110,8 @@ void algo4(evaluate_function_t evaluate,
     // Evaluate the solutions
     for (size_t k = 0; k < lambda; k++)
     {
-      evaluate(X_k[k], y);
+      // evaluate(X_k[k], y);
+      evaluateAndCount(evaluate, &counter, X_k[k], y);
       fitness[k] = y[0];
     }
     
@@ -222,7 +225,8 @@ void algo4(evaluate_function_t evaluate,
       X[j] = fmax(lower_bounds[j], fmin(X[j], upper_bounds[j]));
     }
 
-    evaluate(X,y);
+    // evaluate(X,y);
+    evaluateAndCount(evaluate, &counter, X, y);
     // Check if we are still optimising the solution
     // Stop if we are stuck
     last_evaluations[criterion_counter] = y[0];
@@ -241,11 +245,23 @@ void algo4(evaluate_function_t evaluate,
 
     counter++;
   }
-
+  if (happy) {
+    std::cerr << "Happy (early stop) : " << counter <<"/"<< max_budget << std::endl;
+  }
+  else
+  {
+    std::cerr << "All the budget : " << counter <<"/"<< max_budget << std::endl;
+  }
   // Free memory
   freeMatrix(X_k, lambda);
   freeMatrix(Z, lambda);
   coco_free_memory(y);
+}
+
+inline void evaluateAndCount(evaluate_function_t f, size_t *counter, double* X, double* y)
+{
+  f(X,y);
+  *counter++;
 }
 
 double normE(double *m, size_t dimension)
