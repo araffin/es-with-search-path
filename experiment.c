@@ -14,7 +14,7 @@
  * The maximal budget for evaluations done by an optimization algorithm equals dimension * BUDGET_MULTIPLIER.
  * Increase the budget multiplier value gradually to see how it affects the runtime.
  */
-static const size_t BUDGET_MULTIPLIER = 30000;
+static const size_t BUDGET_MULTIPLIER = 1e5;
 
 /**
  * The maximal number of independent restarts allowed for an algorithm that restarts itself.
@@ -155,7 +155,7 @@ void example_experiment(const char *suite_name,
 
     size_t dimension = coco_problem_get_dimension(PROBLEM);
 
-    if (dimension >= 20) {
+    if (dimension >= 100) {
       printf("Skipping problem for d >= 20\n");
     }
     else{
