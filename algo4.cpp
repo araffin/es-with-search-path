@@ -44,7 +44,9 @@ void algo4(evaluate_function_t evaluate,
   double stop_criterion = 1e-9;
 
   int counter = 0;
-  size_t lambda = 100;
+  size_t lambda = 8 + int(3*log10(dimension));
+  // size_t mu = (size_t) lambda/2;
+  // size_t lambda = 20;
   size_t mu = (size_t) lambda/4;
   // Damping factors
   double d = 1 + sqrt((double)mu/(double)dimension); 
