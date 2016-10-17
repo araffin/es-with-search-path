@@ -22,6 +22,3 @@ void printArray(double* array, size_t n);
 void printMatrix(double** array, size_t n, size_t m);
 void vectorCopy(double* a, double* b, size_t n);
 void freeMatrix(double** mat, size_t nb_rows);
-
-// postprocessing : 
-// python -m bbob_pproc -o out YOURDATAFOLDER

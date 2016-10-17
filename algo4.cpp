@@ -4,7 +4,7 @@
 #include "algo4.hpp"
 #include <assert.h>
 #define PI 3.14159265359
-#define EVAL_CRIT 2 // The number of step we look to decide if we are stuck
+#define EVAL_CRIT 3 // The number of step we look to decide if we are stuck
 using namespace std;
 
 /**
@@ -27,11 +27,11 @@ void algo4(evaluate_function_t evaluate,
                     const size_t max_budget, 
                     coco_random_state_t *random_generator)
 {
-
   // ======================================================
   // INITIALIZATION
   // ======================================================
 
+  // Check that we are in mono-objective
   assert(number_of_objectives == 1);
 
   double X[dimension]; // To be randomely initialized - double (not float) to be used with the function evaluate
@@ -40,7 +40,7 @@ void algo4(evaluate_function_t evaluate,
   double Sigma[dimension]; // idem
   double s_sigma[dimension]; // search path --> vector !
   bool happy = false;
-  // Stop if there is no change in the value greater that stop_criterion
+  // Stop if there is no change in the last value EVAL_CRIT greater that stop_criterion
   double stop_criterion = 1e-9;
 
   int counter = 1;
@@ -83,10 +83,10 @@ void algo4(evaluate_function_t evaluate,
   for (size_t j = 0; j < dimension; j++)
   {
     X[j] = lower_bounds[j] + (upper_bounds[j] - lower_bounds[j]) / 2.0;
-    /* Based on the +/-3sigma rule to obtain a 99.7% CI (cf cma-es.c code)*/
+    // Based on the +/-3sigma rule to obtain a 99.7% CI (cf cma-es.c code)
     Sigma[j] = (upper_bounds[j] - lower_bounds[j]) / 6.0;
   }
-  // double *x = coco_allocate_vector(dimension);
+
   double *y = coco_allocate_vector(number_of_objectives);
   // Init the last value variable
   evaluate(X,y);
@@ -155,39 +155,6 @@ void algo4(evaluate_function_t evaluate,
         }
       }
     }
-
-    // Select the mu best (insertion sort)
-    // Better when lambda small
-    // for (size_t k = 0; k < lambda-1; k++)
-    // {
-    //   double y_tmp = fitness[k];
-    //   for (size_t j = 0; j < dimension; j++)
-    //   {
-    //     X_tmp[j] = X_k[k][j];
-    //     Z_tmp[j] = Z[k][j];
-    //   }
-    //   
-    //   size_t pos = k;
-    //   while (pos > 0 && fitness[pos-1] > y_tmp)
-    //   {
-    //     fitness[pos] = fitness[pos-1];
-    //     for (size_t j = 0; j < dimension; j++)
-    //     {
-    //       X_k[pos][j] = X_k[pos-1][j];
-    //       Z[pos][j] = Z[pos-1][j];
-    //     }
-    //     pos--;
-    //   }
-    //   // Reposition f(x_k)
-    //   fitness[pos] = y_tmp;
-    //   for (size_t j = 0; j < dimension; j++)
-    //   {
-    //     // Reposition x_k : X_k[pos] = X_tmp
-    //     X_k[pos][j] = X_tmp[j];
-    //     // Reposition z_k : Z[pos] = Z_tmp
-    //     Z[pos][j] = Z_tmp[j];
-    //   }
-    // }
     
     // update s_sigma
     for(size_t j = 0; j < dimension; j++)
