@@ -4,7 +4,7 @@
 #include "algo4.hpp"
 #include <assert.h>
 #define PI 3.14159265359
-#define EVAL_CRIT 3 // The number of step we look to decide if we are stuck
+#define EVAL_CRIT 3 // The number of step we look at to decide if we are stuck
 using namespace std;
 
 /**
@@ -17,15 +17,13 @@ using namespace std;
  * @param lower_bounds The lower bounds of the region of interested (a vector containing dimension values).
  * @param upper_bounds The upper bounds of the region of interested (a vector containing dimension values).
  * @param max_budget The maximal number of evaluations.
- *
  */
 void algo4(evaluate_function_t evaluate,
                     const size_t dimension,
                     const size_t number_of_objectives,
                     const double *lower_bounds,
                     const double *upper_bounds,
-                    const size_t max_budget, 
-                    coco_random_state_t *random_generator)
+                    const size_t max_budget)
 {
   // ======================================================
   // INITIALIZATION
@@ -37,25 +35,28 @@ void algo4(evaluate_function_t evaluate,
   double X[dimension]; // To be randomely initialized - double (not float) to be used with the function evaluate
   double X_tmp[dimension]; // Used when sorting the solutions
   double Z_tmp[dimension]; // Used when sorting the solutions
-  double Sigma[dimension]; // idem
-  double s_sigma[dimension]; // search path --> vector !
+  double Sigma[dimension];
+  double s_sigma[dimension];
   bool happy = false;
-  // Stop if there is no change in the last value EVAL_CRIT greater that stop_criterion
+
+  // Stop if there is no change in the last EVAL_CRIT values greater that stop_criterion
   double stop_criterion = 1e-9;
 
   int counter = 1;
-  size_t lambda = 8 + int(3*log10(dimension));
-  // size_t mu = (size_t) lambda/2;
-  // size_t lambda = 20;
+  size_t lambda = 8 + int(3*log10(dimension)); // adaptative lambda, TODO
   size_t mu = (size_t) lambda/4;
+
   // Damping factors
   double d = 1 + sqrt((double)mu/(double)dimension); 
   size_t di = 3*dimension; 
   double c_sigma = sqrt((double)mu/(double)(dimension + mu)); 
+
   // offspring population
   double** X_k;
+
   // Mutation vectors
   double** Z;
+
   double fitness[lambda];
   double E_HALF_NORMAL = sqrt(2./PI);
   double _dim = double(dimension);
@@ -87,17 +88,20 @@ void algo4(evaluate_function_t evaluate,
     Sigma[j] = (upper_bounds[j] - lower_bounds[j]) / 6.0;
   }
 
+  // With this algorithm, single value
   double *y = coco_allocate_vector(number_of_objectives);
-  // Init the last value variable
-  evaluate(X,y);
 
+  // ======================================================
+  // RUN
+  // ======================================================
+
+  // happy depends on the stop_criterion ; counter counts the calls to evaluate
   while (!happy && counter < max_budget)
   {
     for (size_t k = 0; k < lambda; k++)
     {
-      // z_k = N(0,I)
-      // x_k = x + sigma o z_k
       for (size_t j = 0; j < dimension; j++) {
+        // Create z following a distribution N(0,I)
         Z[k][j] = N(gen);
         X_k[k][j] = X[j] + Sigma[j]*Z[k][j];
         //check boundaries
@@ -190,14 +194,14 @@ void algo4(evaluate_function_t evaluate,
     }
 
     evaluate(X,y);
-    // Check if we are still optimising the solution
-    // Stop if we are stuck
+    // Check if we are still optimising the solution ; stop if we are stuck
     last_evaluations[criterion_counter] = y[0];
     criterion_counter = (criterion_counter + 1) % EVAL_CRIT;
     if (counter >= EVAL_CRIT)
     {
       double min_eval = last_evaluations[0];
       double max_eval = last_evaluations[0];
+      // Calcul of the minimum and maximum during the last EVAL_CRIT evaluations
       for (size_t i = 1; i < EVAL_CRIT; i++)
       {
         min_eval = fmin(min_eval, last_evaluations[i]);
@@ -205,18 +209,10 @@ void algo4(evaluate_function_t evaluate,
       }
       happy = ((max_eval - min_eval) < stop_criterion);
     }
-
+    // Update of the counter of evaluation calls. The number of calls per loop is fixed, 
+    // hence the use of a constant for the update.
     counter += int(lambda) + 1;
   }
-#if 0
-  if (happy) {
-    std::cerr << "Happy (early stop) : " << counter <<"/"<< max_budget << std::endl;
-  }
-  else
-  {
-    std::cerr << "All the budget : " << counter <<"/"<< max_budget << std::endl;
-  }
-#endif
   
   // Free memory
   freeMatrix(X_k, lambda);
@@ -224,6 +220,14 @@ void algo4(evaluate_function_t evaluate,
   coco_free_memory(y);
 }
 
+
+/**
+ * Euclidian norm
+ *
+ * @param m pointer to a vector
+ * @param dimension size of the vector
+ * @return Euclidian norm of the vector
+ */
 double normE(double *m, size_t dimension)
 {
   double out = 0;
@@ -234,31 +238,12 @@ double normE(double *m, size_t dimension)
   return sqrt(out);
 }
 
-void printArray(double* array, size_t n)
-{
-  for (size_t i = 0; i < n; i++)
-    cout << array[i] << " ";
-
-  cout << endl;
-}
-
-void printMatrix(double** array, size_t n, size_t m)
-{
-  for (size_t i = 0; i < n; i++)
-  {
-    for (size_t j = 0; j < m; j++) {
-      cout << array[i][j] << " ";
-    }
-    cout << endl;
-  }
-}
-
-void vectorCopy(double* a, double* b, size_t n)
-{
-  for (size_t i = 0; i < n; i++)
-    b[i] = a[i];
-}
-
+/**
+ * Destructor for handcrafted matrices
+ *
+ * @param mat pointer to a matrix
+ * @param nb_rows Number of rows of the matrix
+ */
 void freeMatrix(double** mat, size_t nb_rows)
 {
   for (size_t i = 0; i < nb_rows; i++ )

@@ -14,7 +14,7 @@
  * The maximal budget for evaluations done by an optimization algorithm equals dimension * BUDGET_MULTIPLIER.
  * Increase the budget multiplier value gradually to see how it affects the runtime.
  */
-static const size_t BUDGET_MULTIPLIER = 1e5;
+static const size_t BUDGET_MULTIPLIER = 1e3;
 
 /**
  * The maximal number of independent restarts allowed for an algorithm that restarts itself.
@@ -66,15 +66,6 @@ void my_grid_search(evaluate_function_t evaluate,
                     const double *lower_bounds,
                     const double *upper_bounds,
                     const size_t max_budget);
-
-/*
-void algo4(evaluate_function_t evaluate,
-                    const size_t dimension,
-                    const size_t number_of_objectives,
-                    const double *lower_bounds,
-                    const double *upper_bounds,
-                    const size_t max_budget);
-*/
 
 /* Structure and functions needed for timing the experiment */
 typedef struct {
@@ -175,8 +166,7 @@ void example_experiment(const char *suite_name,
           coco_problem_get_number_of_objectives(PROBLEM),
           coco_problem_get_smallest_values_of_interest(PROBLEM),
           coco_problem_get_largest_values_of_interest(PROBLEM),
-          (size_t) evaluations_remaining, 
-          random_generator);
+          (size_t) evaluations_remaining);
           
           //size_t e_done = coco_problem_get_evaluations(PROBLEM);
           // printf("%d/%d\n", e_done, evaluations_remaining);
