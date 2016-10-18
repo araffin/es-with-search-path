@@ -8,7 +8,7 @@
 using namespace std;
 
 /**
- * A ES(lambda,mu)-search-path optimizer that can be used 
+ * A ES(mu/mu,lambda)-search-path optimizer that can be used
  * for single-objective optimization.
  *
  * @param evaluate The evaluation function used to evaluate the solutions.
@@ -41,15 +41,16 @@ void algo4(evaluate_function_t evaluate,
 
   // Stop if there is no change in the last EVAL_CRIT values greater that stop_criterion
   double stop_criterion = 1e-9;
-
+  // Counter for the number of function evaluation budget
   int counter = 1;
-  size_t lambda = 8 + int(3*log10(dimension)); // adaptative lambda, TODO
+  // adaptative lambda, as suggested in https://arxiv.org/pdf/1604.00772.pdf
+  size_t lambda = 8 + int(3*log10(dimension));
   size_t mu = (size_t) lambda/4;
 
   // Damping factors
-  double d = 1 + sqrt((double)mu/(double)dimension); 
-  size_t di = 3*dimension; 
-  double c_sigma = sqrt((double)mu/(double)(dimension + mu)); 
+  double d = 1 + sqrt((double)mu/(double)dimension);
+  size_t di = 3*dimension;
+  double c_sigma = sqrt((double)mu/(double)(dimension + mu));
 
   // offspring population
   double** X_k;
@@ -78,8 +79,7 @@ void algo4(evaluate_function_t evaluate,
   random_device rd;
   mt19937 gen(rd()); //Mersenne Twister 19937 generator
   normal_distribution<> N(0,1);
-  uniform_real_distribution<double> random_uniform(0.0,1.0);
-  
+
   // Init Solution and Sigma (step size)
   for (size_t j = 0; j < dimension; j++)
   {
@@ -115,11 +115,11 @@ void algo4(evaluate_function_t evaluate,
       evaluate(X_k[k], y);
       fitness[k] = y[0];
     }
-    
+
     // Select the mu best (shell sort)
     // Shell sort : better when using greater lambda
     int gaps[8] = {701, 301, 132, 57, 23, 10, 4, 1};
-    
+
     // // Start with the largest gap and work down to a gap of 1
     for (size_t g = 0; g < 8; g++)
     {
@@ -136,7 +136,7 @@ void algo4(evaluate_function_t evaluate,
           Z_tmp[j] = Z[k][j];
         }
         size_t pos = k;
-        // shift earlier gap-sorted elements up 
+        // shift earlier gap-sorted elements up
         // until the correct location for fitness[k] is found
         while(pos >= gap && fitness[pos-gap] > y_tmp)
         {
@@ -159,7 +159,7 @@ void algo4(evaluate_function_t evaluate,
         }
       }
     }
-    
+
     // update s_sigma
     for(size_t j = 0; j < dimension; j++)
     {
@@ -169,7 +169,7 @@ void algo4(evaluate_function_t evaluate,
         sum = sum + Z[k][j];
       }
       s_sigma[j] = (1-c_sigma)*s_sigma[j] \
-                  + sqrt(c_sigma*(2 - c_sigma))*sqrt((double)mu)/double(mu) * sum; 
+                  + sqrt(c_sigma*(2 - c_sigma))*sqrt((double)mu)/double(mu) * sum;
     }
 
     // update Sigma
@@ -189,7 +189,7 @@ void algo4(evaluate_function_t evaluate,
       {
         sumXk = sumXk + X_k[k][j];
       }
-      X[j] = (double)sumXk/(double)mu; 
+      X[j] = (double)sumXk/(double)mu;
       X[j] = fmax(lower_bounds[j], fmin(X[j], upper_bounds[j]));
     }
 
@@ -209,11 +209,11 @@ void algo4(evaluate_function_t evaluate,
       }
       happy = ((max_eval - min_eval) < stop_criterion);
     }
-    // Update of the counter of evaluation calls. The number of calls per loop is fixed, 
+    // Update of the counter of evaluation calls. The number of calls per loop is fixed,
     // hence the use of a constant for the update.
     counter += int(lambda) + 1;
   }
-  
+
   // Free memory
   freeMatrix(X_k, lambda);
   freeMatrix(Z, lambda);

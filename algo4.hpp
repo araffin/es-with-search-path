@@ -10,7 +10,7 @@
 typedef void (*evaluate_function_t)(const double *x, double *y);
 
 /**
- * A ES(lambda,mu)-search-path optimizer that can be used 
+ * A ES(mu/mu,lambda)-search-path optimizer that can be used
  * for single-objective optimization.
  *
  * @param evaluate The evaluation function used to evaluate the solutions.
