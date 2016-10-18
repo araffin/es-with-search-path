@@ -1,6 +1,6 @@
 ##(μ/μ,λ)-ES with Search Path in C++
 
-An implementation of the algorithm (μ/μ,λ)-ES with Search Path  presented in the paper<sup>1</sup>. To test and compare our algorithm with others, we used the [COCO plateform](https://github.com/numbbo/coco). 
+An implementation of the algorithm (μ/μ,λ)-ES with Search Path  presented in the paper[1]. To test and compare our algorithm with others, we used the [COCO plateform](https://github.com/numbbo/coco). 
 
 ## Running the experiment
 
