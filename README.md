@@ -11,7 +11,7 @@ make
 ```
 To post-process the data, please see [COCO guide](https://github.com/numbbo/coco).
 
-## Authors
+## Contributors
 
 - Florence Carton
 - Alvaro Correia
