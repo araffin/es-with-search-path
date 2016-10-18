@@ -1,6 +1,5 @@
 /**
- * An example of benchmarking random search on a COCO suite. A grid search optimizer is also
- * implemented and can be used instead of random search.
+ * Benchmarking ES-With-Search-Path algorithm on a COCO suite.
  *
  * Set the global parameter BUDGET_MULTIPLIER to suit your needs.
  */
@@ -27,13 +26,6 @@ static const size_t INDEPENDENT_RESTARTS = 1e5;
 static const uint32_t RANDOM_SEED = 0xdeadbeef;
 
 /**
- * A function type for evaluation functions, where the first argument is the vector to be evaluated and the
- * second argument the vector to which the evaluation result is stored.
- * function moved in algo4.cpp
-typedef void (*evaluate_function_t)(const double *x, double *y);
-*/
-
-/**
  * A pointer to the problem to be optimized (needed in order to simplify the interface between the optimization
  * algorithm and the COCO platform).
  */
@@ -48,7 +40,7 @@ static void evaluate_function(const double *x, double *y) {
 }
 
 /* Declarations of all functions implemented in this file (so that their order is not important): */
-void example_experiment(const char *suite_name,
+void experiment(const char *suite_name,
                         const char *observer_name,
                         coco_random_state_t *random_generator);
 
@@ -60,21 +52,6 @@ void my_random_search(evaluate_function_t evaluate,
                       const size_t max_budget,
                       coco_random_state_t *random_generator);
 
-void my_grid_search(evaluate_function_t evaluate,
-                    const size_t dimension,
-                    const size_t number_of_objectives,
-                    const double *lower_bounds,
-                    const double *upper_bounds,
-                    const size_t max_budget);
-
-/*
-void algo4(evaluate_function_t evaluate,
-                    const size_t dimension,
-                    const size_t number_of_objectives,
-                    const double *lower_bounds,
-                    const double *upper_bounds,
-                    const size_t max_budget);
-*/
 
 /* Structure and functions needed for timing the experiment */
 typedef struct {
@@ -104,10 +81,8 @@ int main(void) {
   printf("Running the experiment... (might take time, be patient)\n");
   fflush(stdout);
 
-  // example_experiment("bbob-biobj", "bbob-biobj", random_generator);
-
-  // Uncomment the line below to run the experiment on the bbob suite
-  example_experiment("bbob", "bbob", random_generator);
+  // Run the experiment on the bbob suite
+  experiment("bbob", "bbob", random_generator);
 
   printf("Done!\n");
   fflush(stdout);
@@ -127,7 +102,7 @@ int main(void) {
  * bi-objective observer).
  * @param random_generator The random number generator.
  */
-void example_experiment(const char *suite_name,
+void experiment(const char *suite_name,
                         const char *observer_name,
                         coco_random_state_t *random_generator) {
 
@@ -155,44 +130,36 @@ void example_experiment(const char *suite_name,
 
     size_t dimension = coco_problem_get_dimension(PROBLEM);
 
-    if (dimension >= 100) {
-      printf("Skipping problem for d >= 20\n");
-    }
-    else{
-      /* Run the algorithm at least once */
-      for (run = 1; run <= 1 + INDEPENDENT_RESTARTS; run++) {
-        
-        size_t evaluations_done = coco_problem_get_evaluations(PROBLEM);
-        long evaluations_remaining = (long) (dimension * BUDGET_MULTIPLIER) - (long) evaluations_done;
-        
-        /* Break the loop if the target was hit or there are no more remaining evaluations */
-        if (coco_problem_final_target_hit(PROBLEM) || (evaluations_remaining <= 0))
-        break;
-        
-        /* Call the optimization algorithm for the remaining number of evaluations */
-        algo4(evaluate_function,
-          dimension,
-          coco_problem_get_number_of_objectives(PROBLEM),
-          coco_problem_get_smallest_values_of_interest(PROBLEM),
-          coco_problem_get_largest_values_of_interest(PROBLEM),
-          (size_t) evaluations_remaining, 
-          random_generator);
-          
-          //size_t e_done = coco_problem_get_evaluations(PROBLEM);
-          // printf("%d/%d\n", e_done, evaluations_remaining);
-          /* Break the loop if the algorithm performed no evaluations or an unexpected thing happened */
-          if (coco_problem_get_evaluations(PROBLEM) == evaluations_done) {
-            printf("WARNING: Budget has not been exhausted (%lu/%lu evaluations done)!\n",
-            (unsigned long) evaluations_done, (unsigned long) dimension * BUDGET_MULTIPLIER);
-            break;
-          }
-          else if (coco_problem_get_evaluations(PROBLEM) < evaluations_done)
-          coco_error("Something unexpected happened - function evaluations were decreased!");
-        }
-        /* Keep track of time */
-        timing_data_time_problem(timing_data, PROBLEM);      
-    }
+    /* Run the algorithm at least once */
+    for (run = 1; run <= 1 + INDEPENDENT_RESTARTS; run++) {
 
+      size_t evaluations_done = coco_problem_get_evaluations(PROBLEM);
+      long evaluations_remaining = (long) (dimension * BUDGET_MULTIPLIER) - (long) evaluations_done;
+
+      /* Break the loop if the target was hit or there are no more remaining evaluations */
+      if (coco_problem_final_target_hit(PROBLEM) || (evaluations_remaining <= 0))
+      break;
+
+      /* Call the optimization algorithm for the remaining number of evaluations */
+      algo4(evaluate_function,
+        dimension,
+        coco_problem_get_number_of_objectives(PROBLEM),
+        coco_problem_get_smallest_values_of_interest(PROBLEM),
+        coco_problem_get_largest_values_of_interest(PROBLEM),
+        (size_t) evaluations_remaining,
+        random_generator);
+
+        /* Break the loop if the algorithm performed no evaluations or an unexpected thing happened */
+        if (coco_problem_get_evaluations(PROBLEM) == evaluations_done) {
+          printf("WARNING: Budget has not been exhausted (%lu/%lu evaluations done)!\n",
+          (unsigned long) evaluations_done, (unsigned long) dimension * BUDGET_MULTIPLIER);
+          break;
+        }
+        else if (coco_problem_get_evaluations(PROBLEM) < evaluations_done)
+        coco_error("Something unexpected happened - function evaluations were decreased!");
+      }
+      /* Keep track of time */
+      timing_data_time_problem(timing_data, PROBLEM);
   }
 
   /* Output and finalize the timing data */
@@ -246,82 +213,6 @@ void my_random_search(evaluate_function_t evaluate,
   coco_free_memory(y);
 }
 
-/**
- * A grid search optimizer that can be used for single- as well as multi-objective optimization.
- *
- * @param evaluate The evaluation function used to evaluate the solutions.
- * @param dimension The number of variables.
- * @param number_of_objectives The number of objectives.
- * @param lower_bounds The lower bounds of the region of interested (a vector containing dimension values).
- * @param upper_bounds The upper bounds of the region of interested (a vector containing dimension values).
- * @param max_budget The maximal number of evaluations.
- *
- * If max_budget is not enough to cover even the smallest possible grid, only the first max_budget
- * nodes of the grid are evaluated.
- */
-void my_grid_search(evaluate_function_t evaluate,
-                    const size_t dimension,
-                    const size_t number_of_objectives,
-                    const double *lower_bounds,
-                    const double *upper_bounds,
-                    const size_t max_budget) {
-
-  double *x = coco_allocate_vector(dimension);
-  double *y = coco_allocate_vector(number_of_objectives);
-  long *nodes = (long *) coco_allocate_memory(sizeof(long) * dimension);
-  double *grid_step = coco_allocate_vector(dimension);
-  size_t i, j;
-  size_t evaluations = 0;
-  long max_nodes = (long) floor(pow((double) max_budget, 1.0 / (double) dimension)) - 1;
-
-  /* Take care of the borderline case */
-  if (max_nodes < 1) max_nodes = 1;
-
-  /* Initialization */
-  for (j = 0; j < dimension; j++) {
-    nodes[j] = 0;
-    grid_step[j] = (upper_bounds[j] - lower_bounds[j]) / (double) max_nodes;
-  }
-
-  while (evaluations < max_budget) {
-
-    /* Construct x and evaluate it */
-    for (j = 0; j < dimension; j++) {
-      x[j] = lower_bounds[j] + grid_step[j] * (double) nodes[j];
-    }
-
-    /* Call the evaluate function to evaluate x on the current problem (this is where all the COCO logging
-     * is performed) */
-    evaluate(x, y);
-    evaluations++;
-
-    /* Inside the grid, move to the next node */
-    if (nodes[0] < max_nodes) {
-      nodes[0]++;
-    }
-
-    /* At an outside node of the grid, move to the next level */
-    else if (max_nodes > 0) {
-      for (j = 1; j < dimension; j++) {
-        if (nodes[j] < max_nodes) {
-          nodes[j]++;
-          for (i = 0; i < j; i++)
-            nodes[i] = 0;
-          break;
-        }
-      }
-
-      /* At the end of the grid, exit */
-      if ((j == dimension) && (nodes[j - 1] == max_nodes))
-        break;
-    }
-  }
-
-  coco_free_memory(x);
-  coco_free_memory(y);
-  coco_free_memory(nodes);
-  coco_free_memory(grid_step);
-}
 
 /**
  * Allocates memory for the timing_data_t object and initializes it.
