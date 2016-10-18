@@ -138,9 +138,9 @@ void example_experiment(const char *suite_name,
 
   /* Set some options for the observer. See documentation for other options. */
   char *observer_options =
-      coco_strdupf("result_folder: RS_on_%s_%d "
-                   "algorithm_name: RS "
-                   "algorithm_info: \"A simple random search algorithm\"", suite_name, BUDGET_MULTIPLIER);
+      coco_strdupf("result_folder: ES-With-Search-Path_on_%s_%d "
+                   "algorithm_name: ES-With-Search-Path "
+                   "algorithm_info: \"ES-With-Search-Path algorithm\"", suite_name, BUDGET_MULTIPLIER);
 
   /* Initialize the suite and observer */
   suite = coco_suite(suite_name, "year: 2016", "dimensions: 2,3,5,10,20,40");
