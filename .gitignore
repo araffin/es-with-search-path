@@ -5,6 +5,7 @@ ppdata/
 antonin/
 experiment
 pp*
+*.idea
 *.aux
 *.bbl
 *.blg
