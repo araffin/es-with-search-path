@@ -1,4 +1,4 @@
-##(μ/μ,λ)-ES with Search Path in C++
+## (μ/μ,λ)-ES with Search Path in C++
 
 An implementation of the algorithm (μ/μ,λ)-ES with Search Path  presented in the paper[1]. To test and compare our algorithm with others, we used the [COCO plateform](https://github.com/numbbo/coco). 
 
@@ -13,10 +13,10 @@ To post-process the data, please see [COCO guide](https://github.com/numbbo/coco
 
 ## Authors
 
-Florence Carton
-Alvaro Correia
-Gabriel Quéré
-Antonin Raffin
+- Florence Carton
+- Alvaro Correia
+- Gabriel Quéré
+- Antonin Raffin
 
 Students at ENSTA ParisTech.
 
