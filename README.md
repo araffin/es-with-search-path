@@ -24,3 +24,5 @@ Students at ENSTA ParisTech.
 ## References
 
 [1] Hansen, N., D.V. Arnold and A. Auger (2015). Evolution Strategies. In Janusz Kacprzyk and Witold Pedrycz (Eds.): *Handbook of Computational Intelligence*, Springer, Chapter 44, pp.871-898 
+
+[Paper Link](https://www.lri.fr/~hansen/es-overview-2014.pdf)
